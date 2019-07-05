@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bitset>
-#include <unordered_map>
 #include <vector>
 #include "Entity.h"
 
@@ -45,17 +44,18 @@ private:
     std::bitset<ComponentCount> mRequirements;
     std::size_t mType;
     std::vector<Entity> mManagedEntities;
-    std::unordered_map<Entity, Index> mEntityToManagedEntity;
+    std::vector<Index>* mEntityToManagedEntity = nullptr;
 
-    void setUp(std::size_t type)
+    void setUp(std::size_t type, std::vector<Index>* entityToManagedEntity)
     {
         mType = type;
+        mEntityToManagedEntity = entityToManagedEntity;
     }
 
     void onEntityUpdated(Entity entity, const std::bitset<ComponentCount>& components)
     {
         auto satisfied = (mRequirements & components) == mRequirements;
-        auto managed = mEntityToManagedEntity.find(entity) != std::end(mEntityToManagedEntity);
+        auto managed = (*mEntityToManagedEntity)[entity] != InvalidIndex;
         if (satisfied && !managed)
             addEntity(entity);
         else if (!satisfied && managed)
@@ -64,13 +64,13 @@ private:
 
     void onEntityRemoved(Entity entity)
     {
-        if (mEntityToManagedEntity.find(entity) != std::end(mEntityToManagedEntity))
+        if ((*mEntityToManagedEntity)[entity] != InvalidIndex)
             removeEntity(entity);
     }
 
     void addEntity(Entity entity)
     {
-        mEntityToManagedEntity[entity] = static_cast<Index>(mManagedEntities.size());
+        (*mEntityToManagedEntity)[entity] = static_cast<Index>(mManagedEntities.size());
         mManagedEntities.emplace_back(entity);
         onManagedEntityAdded(entity);
     }
@@ -78,9 +78,9 @@ private:
     void removeEntity(Entity entity)
     {
         onManagedEntityRemoved(entity);
-        auto index = mEntityToManagedEntity[entity];
-        mEntityToManagedEntity[mManagedEntities.back()] = index;
-        mEntityToManagedEntity.erase(entity);
+        auto index = (*mEntityToManagedEntity)[entity];
+        (*mEntityToManagedEntity)[mManagedEntities.back()] = index;
+        (*mEntityToManagedEntity)[entity] = InvalidIndex;
         mManagedEntities[index] = mManagedEntities.back();
         mManagedEntities.pop_back();
     }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bitset>
-#include <unordered_map>
 #include <vector>
 #include "Entity.h"
 
@@ -21,8 +20,9 @@ template<typename T, std::size_t ComponentCount, std::size_t SystemCount>
 class ComponentContainer : public BaseComponentContainer
 {
 public:
-    ComponentContainer(std::vector<std::bitset<ComponentCount>>& entityToBitset) :
-        mEntityToBitset(entityToBitset)
+    ComponentContainer(std::vector<Index>& entityToComponent,
+        std::vector<std::bitset<ComponentCount>>& entityToBitset) :
+        mEntityToComponent(entityToComponent), mEntityToBitset(entityToBitset)
     {
 
     }
@@ -31,7 +31,6 @@ public:
     {
         mComponents.reserve(size);
         mComponentToEntity.reserve(size);
-        mEntityToComponent.reserve(size);
     }
 
     T& get(Entity entity)
@@ -41,7 +40,7 @@ public:
 
     const T& get(Entity entity) const
     {
-        return mComponents[mEntityToComponent.find(entity)->second];
+        return mComponents[mEntityToComponent[entity]];
     }
 
     template<typename... Args>
@@ -63,7 +62,6 @@ public:
         mComponents.pop_back();
         // Update mEntityToComponent
         mEntityToComponent[mComponentToEntity.back()] = index;
-        mEntityToComponent.erase(entity);
         // Update mComponentToEntity
         mComponentToEntity[index] = mComponentToEntity.back();
         mComponentToEntity.pop_back();
@@ -89,7 +87,7 @@ public:
 private:
     std::vector<T> mComponents;
     std::vector<Entity> mComponentToEntity;
-    std::unordered_map<Entity, Index> mEntityToComponent;
+    std::vector<Index>& mEntityToComponent;
     std::vector<std::bitset<ComponentCount>>& mEntityToBitset;
 };
 

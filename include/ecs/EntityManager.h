@@ -17,7 +17,7 @@ public:
     {
         checkComponentType<T>();
         mComponentContainers[T::type] = std::make_unique<ComponentContainer<T, ComponentCount, SystemCount>>(
-            mEntities.getEntityToBitset());
+            mEntities.getEntityToComponent(T::type), mEntities.getEntityToBitset());
     }
 
     template<typename T, typename ...Args>
@@ -25,7 +25,7 @@ public:
     {
         auto type = mSystems.size();
         auto& system = mSystems.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
-        system->setUp(type);
+        system->setUp(type, &mEntities.getEntityToManagedEntity(type));
         return static_cast<T*>(system.get());
     }
 
