@@ -1,0 +1,6 @@
+find_package(GTest REQUIRED)
+add_executable(tests tests.cpp)
+target_link_libraries(tests PRIVATE ecs GTest::GTest)
+setWarnings(tests)
+setStandard(tests)
+gtest_discover_tests(tests)
