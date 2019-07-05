@@ -1,7 +1,7 @@
 #pragma once
 
 #include <bitset>
-#include <unordered_map>
+#include <map>
 #include <vector>
 #include "Entity.h"
 
@@ -31,7 +31,6 @@ public:
     {
         mComponents.reserve(size);
         mComponentToEntity.reserve(size);
-        mEntityToComponent.reserve(size);
     }
 
     T& get(Entity entity)
@@ -89,7 +88,7 @@ public:
 private:
     std::vector<T> mComponents;
     std::vector<Entity> mComponentToEntity;
-    std::unordered_map<Entity, Index> mEntityToComponent;
+    std::map<Entity, Index> mEntityToComponent;
     std::vector<std::bitset<ComponentCount>>& mEntityToBitset;
 };
 

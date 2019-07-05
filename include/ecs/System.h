@@ -1,7 +1,7 @@
 #pragma once
 
 #include <bitset>
-#include <unordered_map>
+#include <map>
 #include <vector>
 #include "Entity.h"
 
@@ -45,7 +45,7 @@ private:
     std::bitset<ComponentCount> mRequirements;
     std::size_t mType;
     std::vector<Entity> mManagedEntities;
-    std::unordered_map<Entity, Index> mEntityToManagedEntity;
+    std::map<Entity, Index> mEntityToManagedEntity;
 
     void setUp(std::size_t type)
     {
