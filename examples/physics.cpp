@@ -7,13 +7,7 @@ using namespace ecs;
 constexpr auto ComponentCount = 512;
 constexpr auto SystemCount = 32;
 
-enum class ComponentType
-{
-    Position,
-    Velocity
-};
-
-struct Position : public Component<Position, ComponentType::Position>
+struct Position : public Component<Position>
 {
     Position(float X = 0.0, float Y = 0.0) : x(X), y(Y)
     {
@@ -24,7 +18,7 @@ struct Position : public Component<Position, ComponentType::Position>
     float y;
 };
 
-struct Velocity : public Component<Velocity, ComponentType::Velocity>
+struct Velocity : public Component<Velocity>
 {
     Velocity(float X = 0.0, float Y = 0.0) : x(X), y(Y)
     {

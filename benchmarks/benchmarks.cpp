@@ -4,14 +4,7 @@
 
 using namespace ecs;
 
-enum class ComponentType
-{
-    Position,
-    Velocity,
-    Mass,
-};
-
-struct Position : public Component<Position, ComponentType::Position>
+struct Position : public Component<Position>
 {
     Position(float X = 0.0, float Y = 0.0) : x(X), y(Y)
     {
@@ -22,7 +15,7 @@ struct Position : public Component<Position, ComponentType::Position>
     float y;
 };
 
-struct Velocity : public Component<Velocity, ComponentType::Velocity>
+struct Velocity : public Component<Velocity>
 {
     Velocity(float X = 0.0, float Y = 0.0) : x(X), y(Y)
     {
@@ -33,7 +26,7 @@ struct Velocity : public Component<Velocity, ComponentType::Velocity>
     float y;
 };
 
-struct Mass : public Component<Mass, ComponentType::Mass>
+struct Mass : public Component<Mass>
 {
     Mass(float Value = 0.0) : value(Value)
     {

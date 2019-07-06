@@ -8,6 +8,9 @@
 namespace ecs
 {
 
+template<typename T>
+class Component;
+
 template<std::size_t ComponentCount, std::size_t SystemCount>
 class EntityManager
 {
@@ -140,7 +143,7 @@ private:
     template<typename T>
     void checkComponentType() const
     {
-        static_assert(T::type < ComponentCount);
+        static_assert(std::is_base_of_v<Component<T>, T>);
     }
 
     template<typename ...Ts>
