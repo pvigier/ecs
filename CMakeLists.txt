@@ -81,3 +81,26 @@ if (BUILD_TESTING)
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+# Install
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/ecsConfigVersion.cmake
+    VERSION
+    COMPATIBILITY AnyNewerVersion)
+configure_package_config_file(
+    ${CMAKE_SOURCE_DIR}/cmake/ecsConfig.cmake.in
+    ${CMAKE_BINARY_DIR}/ecsConfig.cmake
+    INSTALL_DESTINATION lib/cmake/ecs)
+
+install(TARGETS ecs EXPORT ecsTargets
+    INCLUDES DESTINATION include)
+install(EXPORT ecsTargets
+    FILE ecsTargets.cmake
+    DESTINATION lib/cmake/ecs)
+install(FILES
+    ${CMAKE_BINARY_DIR}/ecsConfigVersion.cmake
+    ${CMAKE_BINARY_DIR}/ecsConfig.cmake
+    DESTINATION lib/cmake/ecs)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
