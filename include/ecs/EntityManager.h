@@ -106,7 +106,7 @@ public:
         return std::tie(std::as_const(getComponentContainer<Ts>()->get(entity))...);
     }
 
-    template<typename T, typename... Args>
+    template<typename T, typename ...Args>
     void addComponent(Entity entity, Args&&... args)
     {
         checkComponentType<T>();
@@ -141,13 +141,13 @@ private:
     std::vector<std::unique_ptr<System<ComponentCount, SystemCount>>> mSystems;
 
     template<typename T>
-    void checkComponentType() const
+    constexpr void checkComponentType() const
     {
         static_assert(std::is_base_of_v<Component<T>, T>);
     }
 
     template<typename ...Ts>
-    void checkComponentTypes() const
+    constexpr void checkComponentTypes() const
     {
         (checkComponentType<Ts>(), ...);
     }

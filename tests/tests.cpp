@@ -637,7 +637,7 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
 }
 
 // Seems that I use an old version of googletest, should be replaced by INSTANTIATE_TEST_SUITE in latter version
-INSTANTIATE_TEST_CASE_P(ReserveAndnbEntities, EntityManagerTest, ::testing::Combine(::testing::Values(false, true), ::testing::Values(1, 100, 10000)));
+INSTANTIATE_TEST_CASE_P(ReserveAndNbEntities, EntityManagerTest, ::testing::Combine(::testing::Values(false, true), ::testing::Values(1, 100, 10000)));
 
 int main(int argc, char **argv)
 {
