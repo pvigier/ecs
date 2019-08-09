@@ -36,44 +36,42 @@ struct Mass : public Component<Mass>
     float value;
 };
 
-template<std::size_t ComponentCount, std::size_t SystemCount, typename ...Components>
-class DummySystem : public System<ComponentCount, SystemCount>
+template<typename ...Components>
+class DummySystem : public System
 {
 public:
-    DummySystem(EntityManager<ComponentCount, SystemCount>& entityManager) : mEntityManager(entityManager)
+    DummySystem(EntityManager& entityManager) : mEntityManager(entityManager)
     {
-        this->template setRequirements<Components...>();
+        setRequirements<Components...>();
     }
 
     void update()
     {
-        for (const auto& entity : this->template getManagedEntities())
-            benchmark::DoNotOptimize(mEntityManager.template getComponents<Components...>(entity));
+        for (const auto& entity : getManagedEntities())
+            benchmark::DoNotOptimize(mEntityManager.getComponents<Components...>(entity));
     }
 
 private:
-    EntityManager<ComponentCount, SystemCount>& mEntityManager;
+    EntityManager& mEntityManager;
 };
 
 constexpr auto MinNbEntities = 100000;
 constexpr auto MaxNbEntities = 100000;
-constexpr auto ComponentCount = 512;
-constexpr auto SystemCount = 32;
 
 template<std::size_t ComponentCount, std::size_t SystemCount, bool Reserve, typename ...Components>
 void createEntities(benchmark::State& state)
 {
     for (auto _ : state)
     {
-        auto manager = EntityManager<ComponentCount, SystemCount>();
-        (manager.template registerComponent<Components>(), ...);
-        manager.template createSystem<DummySystem<ComponentCount, SystemCount, Components...>>(manager);
+        auto manager = EntityManager(ComponentCount, SystemCount);
+        (manager.registerComponent<Components>(), ...);
+        manager.createSystem<DummySystem<Components...>>(manager);
         if constexpr (Reserve)
-            manager.template reserve(static_cast<std::size_t>(state.range()));
+            manager.reserve(static_cast<std::size_t>(state.range()));
         for (auto i = 0; i < state.range(); ++i)
         {
             auto entity = manager.createEntity();
-            (manager.template addComponent<Components>(entity), ...);
+            (manager.addComponent<Components>(entity), ...);
         }
     }
     auto nbItems = static_cast<int>(state.iterations()) * state.range();
@@ -90,15 +88,15 @@ BENCHMARK_TEMPLATE(createEntities, 512, 32, false, Position, Velocity, Mass)->Ra
 template<std::size_t ComponentCount, std::size_t SystemCount, bool Reserve, typename ...Components>
 void iterateEntities(benchmark::State& state)
 {
-    auto manager = EntityManager<ComponentCount, SystemCount>();
-    (manager.template registerComponent<Components>(), ...);
-    auto system = manager.template createSystem<DummySystem<ComponentCount, SystemCount, Components...>>(manager);
+    auto manager = EntityManager(ComponentCount, SystemCount);
+    (manager.registerComponent<Components>(), ...);
+    auto system = manager.createSystem<DummySystem<Components...>>(manager);
     if constexpr (Reserve)
-        manager.template reserve(static_cast<std::size_t>(state.range()));
+        manager.reserve(static_cast<std::size_t>(state.range()));
     for (auto i = 0; i < state.range(); ++i)
     {
         auto entity = manager.createEntity();
-        (manager.template addComponent<Components>(entity), ...);
+        (manager.addComponent<Components>(entity), ...);
     }
     for (auto _ : state)
         system->update();
@@ -118,20 +116,20 @@ void createThenRemoveEntities(benchmark::State& state)
 {
     for (auto _ : state)
     {
-        auto manager = EntityManager<ComponentCount, SystemCount>();
-        (manager.template registerComponent<Components>(), ...);
-        manager.template createSystem<DummySystem<ComponentCount, SystemCount, Components...>>(manager);
+        auto manager = EntityManager(ComponentCount, SystemCount);
+        (manager.registerComponent<Components>(), ...);
+        manager.createSystem<DummySystem<Components...>>(manager);
         if constexpr (Reserve)
-            manager.template reserve(static_cast<std::size_t>(state.range()));
+            manager.reserve(static_cast<std::size_t>(state.range()));
         for (auto k = std::size_t(0); k < K; ++k)
         {
             for (auto i = 0; i < state.range(); ++i)
             {
                 auto entity = manager.createEntity();
-                (manager.template addComponent<Components>(entity), ...);
+                (manager.addComponent<Components>(entity), ...);
             }
             for (auto i = state.range() - 1; i >= 0; --i)
-                manager.template removeEntity(static_cast<Entity>(i));
+                manager.removeEntity(static_cast<Entity>(i));
         }
     }
     auto nbItems = static_cast<int>(K * state.iterations()) * state.range();

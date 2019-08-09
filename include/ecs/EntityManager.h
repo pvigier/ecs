@@ -11,15 +11,20 @@ namespace ecs
 template<typename T>
 class Component;
 
-template<std::size_t ComponentCount, std::size_t SystemCount>
 class EntityManager
 {
 public:
+    EntityManager(std::size_t nbComponents, std::size_t nbSystems) :
+        mEntities(nbComponents, nbSystems)
+    {
+        mComponentContainers.resize(nbComponents);
+    }
+
     template<typename T>
     void registerComponent()
     {
         checkComponentType<T>();
-        mComponentContainers[T::type] = std::make_unique<ComponentContainer<T, ComponentCount, SystemCount>>(
+        mComponentContainers[T::type] = std::make_unique<ComponentContainer<T>>(
             mEntities.getEntityToComponent(T::type));
     }
 
@@ -34,10 +39,10 @@ public:
 
     void reserve(std::size_t size)
     {
-        for (auto i = std::size_t(0); i < ComponentCount; ++i)
+        for (auto& componentContainer : mComponentContainers)
         {
-            if (mComponentContainers[i])
-                mComponentContainers[i]->reserve(size);
+            if (componentContainer)
+                componentContainer->reserve(size);
         }
         mEntities.reserve(size);
     }
@@ -50,10 +55,10 @@ public:
     void removeEntity(Entity entity)
     {
         // Remove components
-        for (auto i = std::size_t(0); i < ComponentCount; ++i)
+        for (auto& componentContainer : mComponentContainers)
         {
-            if (mComponentContainers[i])
-                mComponentContainers[i]->tryRemove(entity);
+            if (componentContainer)
+                componentContainer->tryRemove(entity);
         }
         // Send message to systems
         for (auto& system : mSystems)
@@ -66,14 +71,14 @@ public:
     bool hasComponent(Entity entity) const
     {
         checkComponentType<T>();
-        return mEntities.template hasComponent<T>(entity);
+        return mEntities.hasComponent<T>(entity);
     }
 
     template<typename ...Ts>
     bool hasComponents(Entity entity) const
     {
         checkComponentTypes<Ts...>();
-        return mEntities.template hasComponents<Ts...>(entity);
+        return mEntities.hasComponents<Ts...>(entity);
     }
 
     template<typename T>
@@ -132,9 +137,9 @@ public:
     }
 
 private:
-    std::array<std::unique_ptr<BaseComponentContainer>, ComponentCount> mComponentContainers; // TODO: Benchmark against vector and runtime types
-    EntityContainer<ComponentCount, SystemCount> mEntities;
-    std::vector<std::unique_ptr<System<ComponentCount, SystemCount>>> mSystems;
+    std::vector<std::unique_ptr<BaseComponentContainer>> mComponentContainers;
+    EntityContainer mEntities;
+    std::vector<std::unique_ptr<System>> mSystems;
 
     template<typename T>
     constexpr void checkComponentType() const
@@ -151,13 +156,13 @@ private:
     template<typename T>
     auto getComponentContainer()
     {
-        return static_cast<ComponentContainer<T, ComponentCount, SystemCount>*>(mComponentContainers[T::type].get());
+        return static_cast<ComponentContainer<T>*>(mComponentContainers[T::type].get());
     }
 
     template<typename T>
     auto getComponentContainer() const
     {
-        return static_cast<const ComponentContainer<T, ComponentCount, SystemCount>*>(mComponentContainers[T::type].get());
+        return static_cast<const ComponentContainer<T>*>(mComponentContainers[T::type].get());
     }
 };
 

@@ -7,10 +7,8 @@
 namespace ecs
 {
 
-template<std::size_t ComponentCount, std::size_t SystemCount>
 class EntityManager;
 
-template<std::size_t ComponentCount, std::size_t SystemCount>
 class System
 {
 public:
@@ -22,7 +20,7 @@ protected:
     {
         mCheckRequirements = [this](Entity entity)
         {
-            return mEntities->template hasComponents<Ts...>(entity);
+            return mEntities->hasComponents<Ts...>(entity);
         };
     }
 
@@ -42,16 +40,16 @@ protected:
     }
 
 private:
-    friend EntityManager<ComponentCount, SystemCount>;
+    friend EntityManager;
 
     std::function<bool(Entity)> mCheckRequirements;
     std::size_t mType;
     std::vector<Entity> mManagedEntities;
     std::vector<Index>* mEntityToManagedEntity = nullptr;
-    const EntityContainer<ComponentCount, SystemCount>* mEntities = nullptr;
+    const EntityContainer* mEntities = nullptr;
 
     void setUp(std::size_t type, std::vector<Index>* entityToManagedEntity,
-        const EntityContainer<ComponentCount, SystemCount>* entities)
+        const EntityContainer* entities)
     {
         mType = type;
         mEntityToManagedEntity = entityToManagedEntity;

@@ -15,7 +15,7 @@ public:
     virtual bool tryRemove(Entity entity) = 0;
 };
 
-template<typename T, std::size_t ComponentCount, std::size_t SystemCount>
+template<typename T>
 class ComponentContainer : public BaseComponentContainer
 {
 public:

@@ -39,7 +39,7 @@ struct Mass : public Component<Mass>
     float value;
 };
 
-class PhysicsSystem : public System<ComponentCount, SystemCount>
+class PhysicsSystem : public System
 {
 public:
     PhysicsSystem()
@@ -81,9 +81,9 @@ float getMass(std::size_t i)
 class EntityManagerTest : public ::testing::TestWithParam<std::tuple<bool, std::size_t>>
 {
 protected:
-    EntityManager<ComponentCount, SystemCount> manager;
+    EntityManager manager;
 
-    EntityManagerTest()
+    EntityManagerTest() : manager(ComponentCount, SystemCount)
     {
 
     }

@@ -29,10 +29,10 @@ struct Velocity : public Component<Velocity>
     float y;
 };
 
-class PhysicsSystem : public System<ComponentCount, SystemCount>
+class PhysicsSystem : public System
 {
 public:
-    PhysicsSystem(EntityManager<ComponentCount, SystemCount>& entityManager) : mEntityManager(entityManager)
+    PhysicsSystem(EntityManager& entityManager) : mEntityManager(entityManager)
     {
         setRequirements<Position, Velocity>();
     }
@@ -48,14 +48,14 @@ public:
     }
 
 private:
-    EntityManager<ComponentCount, SystemCount>& mEntityManager;
+    EntityManager& mEntityManager;
 };
 
 int main()
 {
     constexpr auto nbEntities = std::size_t(10000);
     constexpr auto nbUpdates = std::size_t(100);
-    auto manager = EntityManager<ComponentCount, SystemCount>();
+    auto manager = EntityManager(ComponentCount, SystemCount);
     manager.registerComponent<Position>();
     manager.registerComponent<Velocity>();
     auto system = manager.createSystem<PhysicsSystem>(manager);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <vector>
 #include <numeric>
 #include "Entity.h"
@@ -8,10 +7,15 @@
 namespace ecs
 {
 
-template<std::size_t ComponentCount, std::size_t SystemCount>
 class EntityContainer
 {
 public:
+    EntityContainer(std::size_t nbComponents, std::size_t nbSystems) :
+        mEntityToComponents(nbComponents), mEntityToManagedEntities(nbSystems)
+    {
+
+    }
+
     // Should only be called once before creating entities
     void reserve(std::size_t size)
     {
@@ -77,8 +81,8 @@ public:
 
 private:
     Entity mNextEntity = 0;
-    std::array<std::vector<Index>, ComponentCount> mEntityToComponents;
-    std::array<std::vector<Index>, SystemCount> mEntityToManagedEntities;
+    std::vector<std::vector<Index>> mEntityToComponents;
+    std::vector<std::vector<Index>> mEntityToManagedEntities;
     std::vector<Entity> mFreeEntities;
 };
 
