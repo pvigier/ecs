@@ -20,7 +20,7 @@ public:
     {
         checkComponentType<T>();
         mComponentContainers[T::type] = std::make_unique<ComponentContainer<T, ComponentCount, SystemCount>>(
-            mEntities.getEntityToComponent(T::type), mEntities.getEntityToBitset());
+            mEntities.getEntityToComponent(T::type));
     }
 
     template<typename T, typename ...Args>
@@ -28,7 +28,7 @@ public:
     {
         auto type = mSystems.size();
         auto& system = mSystems.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
-        system->setUp(type, &mEntities.getEntityToManagedEntity(type));
+        system->setUp(type, &mEntities.getEntityToManagedEntity(type), &mEntities);
         return static_cast<T*>(system.get());
     }
 
@@ -66,16 +66,14 @@ public:
     bool hasComponent(Entity entity) const
     {
         checkComponentType<T>();
-        return mEntities.getBitset(entity)[T::type];
+        return mEntities.template hasComponent<T>(entity);
     }
 
     template<typename ...Ts>
     bool hasComponents(Entity entity) const
     {
         checkComponentTypes<Ts...>();
-        auto requirements = std::bitset<ComponentCount>();
-        (requirements.set(Ts::type), ...);
-        return (requirements & mEntities.getBitset(entity)) == requirements;
+        return mEntities.template hasComponents<Ts...>(entity);
     }
 
     template<typename T>
@@ -112,9 +110,8 @@ public:
         checkComponentType<T>();
         getComponentContainer<T>()->add(entity, std::forward<Args>(args)...);
         // Send message to systems
-        const auto& bitset = mEntities.getBitset(entity);
         for (auto& system : mSystems)
-            system->onEntityUpdated(entity, bitset);
+            system->onEntityUpdated(entity);
     }
 
     template<typename T>
@@ -123,9 +120,8 @@ public:
         checkComponentType<T>();
         getComponentContainer<T>()->remove(entity);
         // Send message to systems
-        const auto& bitset = mEntities.getBitset(entity);
         for (auto& system : mSystems)
-            system->onEntityUpdated(entity, bitset);
+            system->onEntityUpdated(entity);
     }
 
     template<typename T>

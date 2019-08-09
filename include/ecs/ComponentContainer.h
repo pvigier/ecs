@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bitset>
 #include <vector>
 #include "Entity.h"
 
@@ -20,9 +19,8 @@ template<typename T, std::size_t ComponentCount, std::size_t SystemCount>
 class ComponentContainer : public BaseComponentContainer
 {
 public:
-    ComponentContainer(std::vector<Index>& entityToComponent,
-        std::vector<std::bitset<ComponentCount>>& entityToBitset) :
-        mEntityToComponent(entityToComponent), mEntityToBitset(entityToBitset)
+    ComponentContainer(std::vector<Index>& entityToComponent) :
+        mEntityToComponent(entityToComponent)
     {
 
     }
@@ -50,18 +48,17 @@ public:
         mComponents.emplace_back(std::forward<Args>(args)...);
         mComponentToEntity.emplace_back(entity);
         mEntityToComponent[entity] = index;
-        mEntityToBitset[entity][T::type] = true;
     }
 
     void remove(Entity entity)
     {
-        mEntityToBitset[entity][T::type] = false;
         auto index = mEntityToComponent[entity];
         // Update mComponents
         mComponents[index] = std::move(mComponents.back());
         mComponents.pop_back();
         // Update mEntityToComponent
         mEntityToComponent[mComponentToEntity.back()] = index;
+        mEntityToComponent[entity] = InvalidIndex;
         // Update mComponentToEntity
         mComponentToEntity[index] = mComponentToEntity.back();
         mComponentToEntity.pop_back();
@@ -69,7 +66,7 @@ public:
 
     virtual bool tryRemove(Entity entity) override
     {
-        if (mEntityToBitset[entity][T::type])
+        if (mEntityToComponent[entity] != InvalidIndex)
         {
             remove(entity);
             return true;
@@ -88,7 +85,6 @@ private:
     std::vector<T> mComponents;
     std::vector<Entity> mComponentToEntity;
     std::vector<Index>& mEntityToComponent;
-    std::vector<std::bitset<ComponentCount>>& mEntityToBitset;
 };
 
 }

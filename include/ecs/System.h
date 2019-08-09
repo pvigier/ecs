@@ -1,8 +1,8 @@
 #pragma once
 
-#include <bitset>
+#include <functional>
 #include <vector>
-#include "Entity.h"
+#include "EntityContainer.h"
 
 namespace ecs
 {
@@ -20,7 +20,10 @@ protected:
     template<typename ...Ts>
     void setRequirements()
     {
-        (mRequirements.set(Ts::type), ...);
+        mCheckRequirements = [this](Entity entity)
+        {
+            return mEntities->template hasComponents<Ts...>(entity);
+        };
     }
 
     const std::vector<Entity>& getManagedEntities() const
@@ -41,20 +44,23 @@ protected:
 private:
     friend EntityManager<ComponentCount, SystemCount>;
 
-    std::bitset<ComponentCount> mRequirements;
+    std::function<bool(Entity)> mCheckRequirements;
     std::size_t mType;
     std::vector<Entity> mManagedEntities;
     std::vector<Index>* mEntityToManagedEntity = nullptr;
+    const EntityContainer<ComponentCount, SystemCount>* mEntities = nullptr;
 
-    void setUp(std::size_t type, std::vector<Index>* entityToManagedEntity)
+    void setUp(std::size_t type, std::vector<Index>* entityToManagedEntity,
+        const EntityContainer<ComponentCount, SystemCount>* entities)
     {
         mType = type;
         mEntityToManagedEntity = entityToManagedEntity;
+        mEntities = entities;
     }
 
-    void onEntityUpdated(Entity entity, const std::bitset<ComponentCount>& components)
+    void onEntityUpdated(Entity entity)
     {
-        auto satisfied = (mRequirements & components) == mRequirements;
+        auto satisfied = mCheckRequirements(entity);
         auto managed = (*mEntityToManagedEntity)[entity] != InvalidIndex;
         if (satisfied && !managed)
             addEntity(entity);
