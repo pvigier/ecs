@@ -16,14 +16,7 @@
 
 ## Example
 
-Firstly, you should fix your number of components and systems:
-
-```cpp
-constexpr auto ComponentCount = 32;
-constexpr auto SystemCount = 8;
-```
-
-Then, you can define some components:
+Firstly, you should define some components:
 
 ```cpp
 struct Position : public Component<Position>
@@ -42,10 +35,10 @@ struct Velocity : public Component<Velocity>
 Now, let us define a system that will operate on the components:
 
 ```cpp
-class PhysicsSystem : public System<ComponentCount, SystemCount>
+class PhysicsSystem : public System
 {
 public:
-    PhysicsSystem(EntityManager<ComponentCount, SystemCount>& entityManager) : mEntityManager(entityManager)
+    PhysicsSystem(EntityManager& entityManager) : mEntityManager(entityManager)
     {
         setRequirements<Position, Velocity>();
     }
@@ -61,14 +54,16 @@ public:
     }
 
 private:
-    EntityManager<ComponentCount, SystemCount>& mEntityManager;
+    EntityManager& mEntityManager;
 };
 ```
 
 Finally, we create an entity manager, register the components, create a system and some entities:
 
 ```cpp
-auto manager = EntityManager<ComponentCount, SystemCount>();
+auto nbComponents = 2;
+auto nbSystems = 1;
+auto manager = EntityManager(nbComponents, nbSystems);
 manager.registerComponent<Position>();
 manager.registerComponent<Velocity>();
 auto system = manager.createSystem<PhysicsSystem>(manager);
