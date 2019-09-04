@@ -1,9 +1,12 @@
 #pragma once
 
+#include <cassert>
 #include <memory>
+#include <unordered_map>
 #include "EntityContainer.h"
+#include "EntitySet.h"
 #include "ComponentContainer.h"
-#include "System.h"
+#include "hash.h"
 
 namespace ecs
 {
@@ -20,23 +23,6 @@ public:
         mComponentContainers.resize(nbComponents);
     }
 
-    template<typename T>
-    void registerComponent()
-    {
-        checkComponentType<T>();
-        mComponentContainers[T::type] = std::make_unique<ComponentContainer<T>>(
-            mEntities.getEntityToComponent(T::type));
-    }
-
-    template<typename T, typename ...Args>
-    T* createSystem(Args&& ...args)
-    {
-        auto type = mSystems.size();
-        auto& system = mSystems.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
-        system->setUp(type, &mEntities.getEntityToManagedEntity(type), &mEntities);
-        return static_cast<T*>(system.get());
-    }
-
     void reserve(std::size_t size)
     {
         for (auto& componentContainer : mComponentContainers)
@@ -46,6 +32,8 @@ public:
         }
         mEntities.reserve(size);
     }
+
+    // Entities
 
     Entity createEntity()
     {
@@ -60,11 +48,21 @@ public:
             if (componentContainer)
                 componentContainer->tryRemove(entity);
         }
-        // Send message to systems
-        for (auto& system : mSystems)
-            system->onEntityRemoved(entity);
+        // Send message to entity sets
+        for (auto& [entitySetId, entitySet] : mEntitySets)
+            entitySet->onEntityRemoved(entity);
         // Remove entity
         mEntities.remove(entity);
+    }
+
+    // Components
+
+    template<typename T>
+    void registerComponent()
+    {
+        checkComponentType<T>();
+        mComponentContainers[T::type] = std::make_unique<ComponentContainer<T>>(
+            mEntities.getEntityToComponent(T::type));
     }
 
     template<typename T>
@@ -114,9 +112,9 @@ public:
     {
         checkComponentType<T>();
         getComponentContainer<T>()->add(entity, std::forward<Args>(args)...);
-        // Send message to systems
-        for (auto& system : mSystems)
-            system->onEntityUpdated(entity);
+        // Send message to entity sets
+        for (auto& [entitySetId, entitySet] : mEntitySets)
+            entitySet->onEntityUpdated(entity);
     }
 
     template<typename T>
@@ -124,9 +122,9 @@ public:
     {
         checkComponentType<T>();
         getComponentContainer<T>()->remove(entity);
-        // Send message to systems
-        for (auto& system : mSystems)
-            system->onEntityUpdated(entity);
+        // Send message to entity sets
+        for (auto& [entitySetId, entitySet] : mEntitySets)
+            entitySet->onEntityUpdated(entity);
     }
 
     template<typename T>
@@ -136,10 +134,29 @@ public:
         return getComponentContainer<T>()->getOwner(component);
     }
 
+    // Entity sets
+
+    template<typename ...Ts>
+    void registerEntitySet()
+    {
+        checkComponentTypes<Ts...>();
+        // TODO: add assertion concerning the number of entity sets
+        mEntitySets[EntitySetId{Ts::type...}] = std::make_unique<EntitySet<Ts...>>(
+            &mEntities, &mEntities.getEntityToManagedEntity(mEntitySets.size()));
+    }
+
+    template<typename ...Ts>
+    const std::vector<Entity>& getEntitySet()
+    {
+        checkComponentTypes<Ts...>();
+        assert(mEntitySets.find(EntitySetId{Ts::type...}) != std::end(mEntitySets));
+        return mEntitySets[EntitySetId{Ts::type...}]->getEntities();
+    }
+
 private:
     std::vector<std::unique_ptr<BaseComponentContainer>> mComponentContainers;
     EntityContainer mEntities;
-    std::vector<std::unique_ptr<System>> mSystems;
+    std::unordered_map<EntitySetId, std::unique_ptr<BaseEntitySet>, HashEntitySetId> mEntitySets;
 
     template<typename T>
     constexpr void checkComponentType() const

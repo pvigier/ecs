@@ -29,17 +29,17 @@ struct Velocity : public Component<Velocity>
     float y;
 };
 
-class PhysicsSystem : public System
+class PhysicsSystem
 {
 public:
     PhysicsSystem(EntityManager& entityManager) : mEntityManager(entityManager)
     {
-        setRequirements<Position, Velocity>();
+
     }
 
     void update(float dt)
     {
-        for (const auto& entity : getManagedEntities())
+        for (const auto& entity : mEntityManager.getEntitySet<Position, Velocity>())
         {
             auto [position, velocity] = mEntityManager.getComponents<Position, Velocity>(entity);
             position.x += velocity.x * dt;
@@ -58,7 +58,8 @@ int main()
     auto manager = EntityManager(ComponentCount, SystemCount);
     manager.registerComponent<Position>();
     manager.registerComponent<Velocity>();
-    auto system = manager.createSystem<PhysicsSystem>(manager);
+    manager.registerEntitySet<Position, Velocity>();
+    auto system = PhysicsSystem(manager);
     manager.reserve(nbEntities);
     for (auto i = std::size_t(0); i < nbEntities; ++i)
     {
@@ -72,7 +73,7 @@ int main()
         auto time = std::chrono::system_clock::now();
         auto dt = std::chrono::duration<float>(time - prevTime).count();
         prevTime = time;
-        system->update(dt);
+        system.update(dt);
     }
     return 0;
 }

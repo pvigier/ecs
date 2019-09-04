@@ -37,17 +37,17 @@ struct Mass : public Component<Mass>
 };
 
 template<typename ...Components>
-class DummySystem : public System
+class DummySystem
 {
 public:
     DummySystem(EntityManager& entityManager) : mEntityManager(entityManager)
     {
-        setRequirements<Components...>();
+
     }
 
     void update()
     {
-        for (const auto& entity : getManagedEntities())
+        for (const auto& entity : mEntityManager.getEntitySet<Components...>())
             benchmark::DoNotOptimize(mEntityManager.getComponents<Components...>(entity));
     }
 
@@ -65,7 +65,8 @@ void createEntities(benchmark::State& state)
     {
         auto manager = EntityManager(ComponentCount, SystemCount);
         (manager.registerComponent<Components>(), ...);
-        manager.createSystem<DummySystem<Components...>>(manager);
+        manager.registerEntitySet<Components...>();
+        auto system = DummySystem<Components...>(manager);
         if constexpr (Reserve)
             manager.reserve(static_cast<std::size_t>(state.range()));
         for (auto i = 0; i < state.range(); ++i)
@@ -90,7 +91,8 @@ void iterateEntities(benchmark::State& state)
 {
     auto manager = EntityManager(ComponentCount, SystemCount);
     (manager.registerComponent<Components>(), ...);
-    auto system = manager.createSystem<DummySystem<Components...>>(manager);
+    manager.registerEntitySet<Components...>();
+    auto system = DummySystem<Components...>(manager);
     if constexpr (Reserve)
         manager.reserve(static_cast<std::size_t>(state.range()));
     for (auto i = 0; i < state.range(); ++i)
@@ -99,7 +101,7 @@ void iterateEntities(benchmark::State& state)
         (manager.addComponent<Components>(entity), ...);
     }
     for (auto _ : state)
-        system->update();
+        system.update();
     auto nbItems = static_cast<int>(state.iterations()) * state.range();
     state.SetItemsProcessed(static_cast<std::size_t>(nbItems));
     state.SetComplexityN(state.range());
@@ -118,7 +120,8 @@ void createThenRemoveEntities(benchmark::State& state)
     {
         auto manager = EntityManager(ComponentCount, SystemCount);
         (manager.registerComponent<Components>(), ...);
-        manager.createSystem<DummySystem<Components...>>(manager);
+        manager.registerEntitySet<Components...>();
+        auto system = DummySystem<Components...>(manager);
         if constexpr (Reserve)
             manager.reserve(static_cast<std::size_t>(state.range()));
         for (auto k = std::size_t(0); k < K; ++k)

@@ -39,20 +39,6 @@ struct Mass : public Component<Mass>
     float value;
 };
 
-class PhysicsSystem : public System
-{
-public:
-    PhysicsSystem()
-    {
-        setRequirements<Position, Velocity, Mass>();
-    }
-
-    std::size_t getNbManagedEntities() const
-    {
-        return getManagedEntities().size();
-    }
-};
-
 float getX(std::size_t i)
 {
     return static_cast<float>(i);
@@ -98,7 +84,7 @@ TEST_P(EntityManagerTest, AddComponents)
 {
     auto [reserve, nbEntities] = GetParam();
     manager.registerComponent<Position>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -156,14 +142,15 @@ TEST_P(EntityManagerTest, AddComponents)
         ASSERT_EQ(anotherPosition.x, getX(i));
         ASSERT_EQ(anotherPosition.y, getY(i));
     }
-    ASSERT_EQ(system->getNbManagedEntities(), 0);
+    auto entitySetSize = manager.getEntitySet<Position>().size();
+    ASSERT_EQ(entitySetSize, nbEntities);
 }
 
 TEST_P(EntityManagerTest, AddAndModifyComponents)
 {
     auto [reserve, nbEntities] = GetParam();
     manager.registerComponent<Position>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -185,14 +172,15 @@ TEST_P(EntityManagerTest, AddAndModifyComponents)
         ASSERT_EQ(position.x, 2.0f * getX(i));
         ASSERT_EQ(position.y, 2.0f * getY(i));
     }
-    ASSERT_EQ(system->getNbManagedEntities(), 0);
+    auto entitySetSize = manager.getEntitySet<Position>().size();
+    ASSERT_EQ(entitySetSize, nbEntities);
 }
 
 TEST_P(EntityManagerTest, AddAndRemoveComponents)
 {
     auto [reserve, nbEntities] = GetParam();
     manager.registerComponent<Position>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -208,14 +196,15 @@ TEST_P(EntityManagerTest, AddAndRemoveComponents)
         ASSERT_FALSE(manager.hasComponent<Position>(entity));
         ASSERT_FALSE(manager.hasComponents<Position>(entity));
     }
-    ASSERT_EQ(system->getNbManagedEntities(), 0);
+    auto entitySetSize = manager.getEntitySet<Position>().size();
+    ASSERT_EQ(entitySetSize, 0);
 }
 
 TEST_P(EntityManagerTest, AddAndRemoveSomeComponents)
 {
     auto [reserve, nbEntities] = GetParam();
     manager.registerComponent<Position>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -244,7 +233,8 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeComponents)
             ASSERT_EQ(position.y, getY(i));
         }
     }
-    ASSERT_EQ(system->getNbManagedEntities(), 0);
+    auto entitySetSize = manager.getEntitySet<Position>().size();
+    ASSERT_EQ(entitySetSize, nbEntities / 2);
 }
 
 TEST_P(EntityManagerTest, AddSeveralComponents)
@@ -253,7 +243,7 @@ TEST_P(EntityManagerTest, AddSeveralComponents)
     manager.registerComponent<Position>();
     manager.registerComponent<Velocity>();
     manager.registerComponent<Mass>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -315,7 +305,8 @@ TEST_P(EntityManagerTest, AddSeveralComponents)
         ASSERT_EQ(velocity.y, getVy(i));
         ASSERT_EQ(mass.value, getMass(i));
     }
-    ASSERT_EQ(system->getNbManagedEntities(), nbEntities);
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    ASSERT_EQ(entitySetSize, nbEntities);
 }
 
 TEST_P(EntityManagerTest, AddHeterogeneousEntities)
@@ -324,7 +315,7 @@ TEST_P(EntityManagerTest, AddHeterogeneousEntities)
     manager.registerComponent<Position>();
     manager.registerComponent<Velocity>();
     manager.registerComponent<Mass>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -386,7 +377,8 @@ TEST_P(EntityManagerTest, AddHeterogeneousEntities)
         else
             ASSERT_FALSE(hasAll);
     }
-    ASSERT_EQ(system->getNbManagedEntities(), (nbEntities - 1) / 30 + 1);
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    ASSERT_EQ(entitySetSize, (nbEntities - 1) / 30 + 1);
 }
 
 TEST_P(EntityManagerTest, AddSeveralComponentsAndRemoveSome)
@@ -395,7 +387,7 @@ TEST_P(EntityManagerTest, AddSeveralComponentsAndRemoveSome)
     manager.registerComponent<Position>();
     manager.registerComponent<Velocity>();
     manager.registerComponent<Mass>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -443,7 +435,8 @@ TEST_P(EntityManagerTest, AddSeveralComponentsAndRemoveSome)
             ASSERT_EQ(mass.value, getMass(i));
         }
     }
-    ASSERT_EQ(system->getNbManagedEntities(), (nbEntities - 1) / 4 + 1);
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    ASSERT_EQ(entitySetSize, (nbEntities - 1) / 4 + 1);
 }
 
 TEST_P(EntityManagerTest, AddAndRemoveEntities)
@@ -452,7 +445,7 @@ TEST_P(EntityManagerTest, AddAndRemoveEntities)
     manager.registerComponent<Position>();
     manager.registerComponent<Velocity>();
     manager.registerComponent<Mass>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -471,7 +464,8 @@ TEST_P(EntityManagerTest, AddAndRemoveEntities)
         auto entity = entities[i];
         manager.removeEntity(entity);
     }
-    ASSERT_EQ(system->getNbManagedEntities(), 0);
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    ASSERT_EQ(entitySetSize, 0);
 }
 
 TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
@@ -480,7 +474,7 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
     manager.registerComponent<Position>();
     manager.registerComponent<Velocity>();
     manager.registerComponent<Mass>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -530,10 +524,11 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
             }
         }
     }
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
     if (nbEntities > 3)
-        ASSERT_EQ(system->getNbManagedEntities(), (nbEntities - 4) / 4 - (nbEntities - 4) / 12);
+        ASSERT_EQ(entitySetSize, (nbEntities - 4) / 4 - (nbEntities - 4) / 12);
     else
-        ASSERT_EQ(system->getNbManagedEntities(), 0);
+        ASSERT_EQ(entitySetSize, 0);
 }
 
 TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
@@ -542,7 +537,7 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
     manager.registerComponent<Position>();
     manager.registerComponent<Velocity>();
     manager.registerComponent<Mass>();
-    auto system = manager.createSystem<PhysicsSystem>();
+    manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
     auto entities = std::vector<Entity>();
@@ -630,10 +625,11 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
             ASSERT_EQ(mass.value, getMass(i));
         }
     }
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
     if (nbEntities > 3)
-        ASSERT_EQ(system->getNbManagedEntities(), (nbEntities - 4) / 4 - (nbEntities - 4) / 12 + (nbEntities - 1) / 4 + 1);
+        ASSERT_EQ(entitySetSize, (nbEntities - 4) / 4 - (nbEntities - 4) / 12 + (nbEntities - 1) / 4 + 1);
     else
-        ASSERT_EQ(system->getNbManagedEntities(), (nbEntities - 1) / 4 + 1);
+        ASSERT_EQ(entitySetSize, (nbEntities - 1) / 4 + 1);
 }
 
 // Seems that I use an old version of googletest, should be replaced by INSTANTIATE_TEST_SUITE in latter version
