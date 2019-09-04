@@ -1,10 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 
 namespace ecs
 {
 
-using Entity = uint32_t;
+using ComponentId = uint32_t;
 
 }

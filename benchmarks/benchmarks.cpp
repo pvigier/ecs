@@ -79,9 +79,9 @@ void createEntities(benchmark::State& state)
     state.SetItemsProcessed(static_cast<std::size_t>(nbItems));
     state.SetComplexityN(state.range());
 }
-BENCHMARK_TEMPLATE(createEntities, 512, 32, true, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
-BENCHMARK_TEMPLATE(createEntities, 512, 32, true, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
-BENCHMARK_TEMPLATE(createEntities, 512, 32, true, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+//BENCHMARK_TEMPLATE(createEntities, 512, 32, true, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+//BENCHMARK_TEMPLATE(createEntities, 512, 32, true, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+//BENCHMARK_TEMPLATE(createEntities, 512, 32, true, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createEntities, 512, 32, false, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createEntities, 512, 32, false, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createEntities, 512, 32, false, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
@@ -106,9 +106,9 @@ void iterateEntities(benchmark::State& state)
     state.SetItemsProcessed(static_cast<std::size_t>(nbItems));
     state.SetComplexityN(state.range());
 }
-BENCHMARK_TEMPLATE(iterateEntities, 512, 32, true, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
-BENCHMARK_TEMPLATE(iterateEntities, 512, 32, true, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
-BENCHMARK_TEMPLATE(iterateEntities, 512, 32, true, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+//BENCHMARK_TEMPLATE(iterateEntities, 512, 32, true, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+//BENCHMARK_TEMPLATE(iterateEntities, 512, 32, true, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+//BENCHMARK_TEMPLATE(iterateEntities, 512, 32, true, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(iterateEntities, 512, 32, false, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(iterateEntities, 512, 32, false, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(iterateEntities, 512, 32, false, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
@@ -139,7 +139,7 @@ void createThenRemoveEntities(benchmark::State& state)
     state.SetItemsProcessed(static_cast<std::size_t>(nbItems));
     state.SetComplexityN(state.range());
 }
-BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, true, 1, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+/*BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, true, 1, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, true, 1, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, true, 1, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, false, 1, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
@@ -150,6 +150,6 @@ BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, true, 10, Position, Veloci
 BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, true, 10, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, false, 10, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, false, 10, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
-BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, false, 10, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+BENCHMARK_TEMPLATE(createThenRemoveEntities, 512, 32, false, 10, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);*/
 
 BENCHMARK_MAIN()

@@ -111,11 +111,9 @@ TEST_P(EntityManagerTest, AddComponents)
         auto hasVelocityAndMass = manager.hasComponents<Velocity, Mass>(entity);
         ASSERT_FALSE(hasVelocityAndMass);
         const auto& position = manager.getComponent<Position>(entity);
-        ASSERT_EQ(manager.getOwner<Position>(position), entity);
         ASSERT_EQ(position.x, getX(i));
         ASSERT_EQ(position.y, getY(i));
         auto [anotherPosition] = manager.getComponents<Position>(entity);
-        ASSERT_EQ(manager.getOwner<Position>(anotherPosition), entity);
         ASSERT_EQ(anotherPosition.x, getX(i));
         ASSERT_EQ(anotherPosition.y, getY(i));
     }
@@ -134,11 +132,9 @@ TEST_P(EntityManagerTest, AddComponents)
         auto hasVelocityAndMass = std::as_const(manager).hasComponents<Velocity, Mass>(entity);
         ASSERT_FALSE(hasVelocityAndMass);
         const auto& position = std::as_const(manager).getComponent<Position>(entity);
-        ASSERT_EQ(std::as_const(manager).getOwner<Position>(position), entity);
         ASSERT_EQ(position.x, getX(i));
         ASSERT_EQ(position.y, getY(i));
         auto [anotherPosition] = std::as_const(manager).getComponents<Position>(entity);
-        ASSERT_EQ(std::as_const(manager).getOwner<Position>(anotherPosition), entity);
         ASSERT_EQ(anotherPosition.x, getX(i));
         ASSERT_EQ(anotherPosition.y, getY(i));
     }
@@ -228,7 +224,6 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeComponents)
             ASSERT_TRUE(manager.hasComponent<Position>(entity));
             ASSERT_TRUE(manager.hasComponents<Position>(entity));
             const auto& position = manager.getComponent<Position>(entity);
-            ASSERT_EQ(manager.getOwner<Position>(position), entity);
             ASSERT_EQ(position.x, getX(i));
             ASSERT_EQ(position.y, getY(i));
         }
@@ -270,9 +265,6 @@ TEST_P(EntityManagerTest, AddSeveralComponents)
         auto hasAll = manager.hasComponents<Position, Velocity, Mass>(entity);
         ASSERT_TRUE(hasAll);
         auto [position, velocity, mass] = manager.getComponents<Position, Velocity, Mass>(entity);
-        ASSERT_EQ(manager.getOwner(position), entity);
-        ASSERT_EQ(manager.getOwner(velocity), entity);
-        ASSERT_EQ(manager.getOwner(mass), entity);
         ASSERT_EQ(position.x, getX(i));
         ASSERT_EQ(position.y, getY(i));
         ASSERT_EQ(velocity.x, getVx(i));
@@ -296,9 +288,6 @@ TEST_P(EntityManagerTest, AddSeveralComponents)
         auto hasAll = std::as_const(manager).hasComponents<Position, Velocity, Mass>(entity);
         ASSERT_TRUE(hasAll);
         auto [position, velocity, mass] = std::as_const(manager).getComponents<Position, Velocity, Mass>(entity);
-        ASSERT_EQ(std::as_const(manager).getOwner(position), entity);
-        ASSERT_EQ(std::as_const(manager).getOwner(velocity), entity);
-        ASSERT_EQ(std::as_const(manager).getOwner(mass), entity);
         ASSERT_EQ(position.x, getX(i));
         ASSERT_EQ(position.y, getY(i));
         ASSERT_EQ(velocity.x, getVx(i));
@@ -336,7 +325,6 @@ TEST_P(EntityManagerTest, AddHeterogeneousEntities)
         {
             ASSERT_TRUE(manager.hasComponent<Position>(entity));
             const auto& position = manager.getComponent<Position>(entity);
-            ASSERT_EQ(manager.getOwner(position), entity);
             ASSERT_EQ(position.x, getX(i));
             ASSERT_EQ(position.y, getY(i));
         }
@@ -346,7 +334,6 @@ TEST_P(EntityManagerTest, AddHeterogeneousEntities)
         {
             ASSERT_TRUE(manager.hasComponent<Velocity>(entity));
             const auto& velocity = manager.getComponent<Velocity>(entity);
-            ASSERT_EQ(manager.getOwner(velocity), entity);
             ASSERT_EQ(velocity.x, getVx(i));
             ASSERT_EQ(velocity.y, getVy(i));
         }
@@ -356,7 +343,6 @@ TEST_P(EntityManagerTest, AddHeterogeneousEntities)
         {
             ASSERT_TRUE(manager.hasComponents<Mass>(entity));
             const auto& mass = manager.getComponent<Mass>(entity);
-            ASSERT_EQ(manager.getOwner(mass), entity);
             ASSERT_EQ(mass.value, getMass(i));
         }
         else
@@ -415,7 +401,6 @@ TEST_P(EntityManagerTest, AddSeveralComponentsAndRemoveSome)
         {
             ASSERT_TRUE(manager.hasComponent<Position>(entity));
             const auto& position = manager.getComponent<Position>(entity);
-            ASSERT_EQ(manager.getOwner(position), entity);
             ASSERT_EQ(position.x, getX(i));
             ASSERT_EQ(position.y, getY(i));
         }
@@ -423,7 +408,6 @@ TEST_P(EntityManagerTest, AddSeveralComponentsAndRemoveSome)
         {
             ASSERT_TRUE(manager.hasComponent<Velocity>(entity));
             const auto& velocity = manager.getComponent<Velocity>(entity);
-            ASSERT_EQ(manager.getOwner(velocity), entity);
             ASSERT_EQ(velocity.x, getVx(i));
             ASSERT_EQ(velocity.y, getVy(i));
         }
@@ -431,7 +415,6 @@ TEST_P(EntityManagerTest, AddSeveralComponentsAndRemoveSome)
         {
             ASSERT_TRUE(manager.hasComponent<Mass>(entity));
             const auto& mass = manager.getComponent<Mass>(entity);
-            ASSERT_EQ(manager.getOwner(mass), entity);
             ASSERT_EQ(mass.value, getMass(i));
         }
     }
@@ -503,7 +486,6 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
             {
                 ASSERT_TRUE(manager.hasComponent<Position>(entity));
                 const auto& position = manager.getComponent<Position>(entity);
-                ASSERT_EQ(manager.getOwner(position), entity);
                 ASSERT_EQ(position.x, getX(i));
                 ASSERT_EQ(position.y, getY(i));
             }
@@ -511,7 +493,6 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
             {
                 ASSERT_TRUE(manager.hasComponent<Velocity>(entity));
                 const auto& velocity = manager.getComponent<Velocity>(entity);
-                ASSERT_EQ(manager.getOwner(velocity), entity);
                 ASSERT_EQ(velocity.x, getVx(i));
                 ASSERT_EQ(velocity.y, getVy(i));
             }
@@ -519,7 +500,6 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
             {
                 ASSERT_TRUE(manager.hasComponent<Mass>(entity));
                 const auto& mass = manager.getComponent<Mass>(entity);
-                ASSERT_EQ(manager.getOwner(mass), entity);
                 ASSERT_EQ(mass.value, getMass(i));
             }
         }
@@ -577,7 +557,6 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
             {
                 ASSERT_TRUE(manager.hasComponent<Position>(entity));
                 const auto& position = manager.getComponent<Position>(entity);
-                ASSERT_EQ(manager.getOwner(position), entity);
                 ASSERT_EQ(position.x, getX(i));
                 ASSERT_EQ(position.y, getY(i));
             }
@@ -585,7 +564,6 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
             {
                 ASSERT_TRUE(manager.hasComponent<Velocity>(entity));
                 const auto& velocity = manager.getComponent<Velocity>(entity);
-                ASSERT_EQ(manager.getOwner(velocity), entity);
                 ASSERT_EQ(velocity.x, getVx(i));
                 ASSERT_EQ(velocity.y, getVy(i));
             }
@@ -593,7 +571,6 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
             {
                 ASSERT_TRUE(manager.hasComponent<Mass>(entity));
                 const auto& mass = manager.getComponent<Mass>(entity);
-                ASSERT_EQ(manager.getOwner(mass), entity);
                 ASSERT_EQ(mass.value, getMass(i));
             }
         }
@@ -605,7 +582,6 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
         {
             ASSERT_TRUE(manager.hasComponent<Position>(entity));
             const auto& position = manager.getComponent<Position>(entity);
-            ASSERT_EQ(manager.getOwner(position), entity);
             ASSERT_EQ(position.x, getX(i));
             ASSERT_EQ(position.y, getY(i));
         }
@@ -613,7 +589,6 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
         {
             ASSERT_TRUE(manager.hasComponent<Velocity>(entity));
             const auto& velocity = manager.getComponent<Velocity>(entity);
-            ASSERT_EQ(manager.getOwner(velocity), entity);
             ASSERT_EQ(velocity.x, getVx(i));
             ASSERT_EQ(velocity.y, getVy(i));
         }
@@ -621,7 +596,6 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
         {
             ASSERT_TRUE(manager.hasComponent<Mass>(entity));
             const auto& mass = manager.getComponent<Mass>(entity);
-            ASSERT_EQ(manager.getOwner(mass), entity);
             ASSERT_EQ(mass.value, getMass(i));
         }
     }

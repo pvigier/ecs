@@ -3,9 +3,9 @@
 #include <cassert>
 #include <memory>
 #include <unordered_map>
+#include "ComponentContainer.h"
 #include "EntityContainer.h"
 #include "EntitySet.h"
-#include "ComponentContainer.h"
 #include "hash.h"
 
 namespace ecs
@@ -17,8 +17,7 @@ class Component;
 class EntityManager
 {
 public:
-    EntityManager(std::size_t nbComponents, std::size_t nbSystems) :
-        mEntities(nbComponents, nbSystems)
+    EntityManager(std::size_t nbComponents, std::size_t nbEntitySets)
     {
         mComponentContainers.resize(nbComponents);
     }
@@ -37,22 +36,19 @@ public:
 
     Entity createEntity()
     {
-        return mEntities.create();
+        return mEntities.emplace();
     }
 
     void removeEntity(Entity entity)
     {
         // Remove components
-        for (auto& componentContainer : mComponentContainers)
-        {
-            if (componentContainer)
-                componentContainer->tryRemove(entity);
-        }
+        for (auto& [componentType, componentId] : mEntities.get(entity))
+            mComponentContainers[componentType]->remove(componentId);
         // Send message to entity sets
         for (auto& [entitySetId, entitySet] : mEntitySets)
             entitySet->onEntityRemoved(entity);
         // Remove entity
-        mEntities.remove(entity);
+        mEntities.erase(entity);
     }
 
     // Components
@@ -61,57 +57,63 @@ public:
     void registerComponent()
     {
         checkComponentType<T>();
-        mComponentContainers[T::type] = std::make_unique<ComponentContainer<T>>(
-            mEntities.getEntityToComponent(T::type));
+        mComponentContainers[T::type] = std::make_unique<ComponentContainer<T>>();
     }
 
     template<typename T>
     bool hasComponent(Entity entity) const
     {
         checkComponentType<T>();
-        return mEntities.hasComponent<T>(entity);
+        auto& componentIds = mEntities.get(entity);
+        return componentIds.find(T::type) != std::end(componentIds);
     }
 
     template<typename ...Ts>
     bool hasComponents(Entity entity) const
     {
         checkComponentTypes<Ts...>();
-        return mEntities.hasComponents<Ts...>(entity);
+        auto& componentIds = mEntities.get(entity);
+        return ((componentIds.find(Ts::type) != std::end(componentIds)) && ...);
     }
 
     template<typename T>
     T& getComponent(Entity entity)
     {
         checkComponentType<T>();
-        return getComponentContainer<T>()->get(entity);
+        auto componentId = mEntities.get(entity)[T::type];
+        return getComponentContainer<T>().get(componentId);
     }
 
     template<typename T>
     const T& getComponent(Entity entity) const
     {
         checkComponentType<T>();
-        return getComponentContainer<T>()->get(entity);
+        auto componentId = mEntities.get(entity).find(T::type)->second;
+        return getComponentContainer<T>().get(componentId);
     }
 
     template<typename ...Ts>
     std::tuple<Ts&...> getComponents(Entity entity)
     {
         checkComponentTypes<Ts...>();
-        return std::tie(getComponentContainer<Ts>()->get(entity)...);
+        auto& componentIds = mEntities.get(entity);
+        return std::tie(getComponentContainer<Ts>().get(componentIds[Ts::type])...);
     }
 
     template<typename ...Ts>
     std::tuple<const Ts&...> getComponents(Entity entity) const
     {
         checkComponentTypes<Ts...>();
-        return std::tie(std::as_const(getComponentContainer<Ts>()->get(entity))...);
+        auto& componentIds = mEntities.get(entity);
+        return std::tie(std::as_const(getComponentContainer<Ts>().get(componentIds.find(Ts::type)->second))...);
     }
 
     template<typename T, typename ...Args>
     void addComponent(Entity entity, Args&&... args)
     {
         checkComponentType<T>();
-        getComponentContainer<T>()->add(entity, std::forward<Args>(args)...);
+        auto componentId = getComponentContainer<T>().emplace(std::forward<Args>(args)...);
+        mEntities.get(entity)[T::type] = componentId;
         // Send message to entity sets
         for (auto& [entitySetId, entitySet] : mEntitySets)
             entitySet->onEntityUpdated(entity);
@@ -121,17 +123,13 @@ public:
     void removeComponent(Entity entity)
     {
         checkComponentType<T>();
-        getComponentContainer<T>()->remove(entity);
+        auto& componentIds = mEntities.get(entity);
+        auto it = componentIds.find(T::type);
+        getComponentContainer<T>().erase(it->second);
+        componentIds.erase(it);
         // Send message to entity sets
         for (auto& [entitySetId, entitySet] : mEntitySets)
             entitySet->onEntityUpdated(entity);
-    }
-
-    template<typename T>
-    Entity getOwner(const T& component) const
-    {
-        checkComponentType<T>();
-        return getComponentContainer<T>()->getOwner(component);
     }
 
     // Entity sets
@@ -140,9 +138,7 @@ public:
     void registerEntitySet()
     {
         checkComponentTypes<Ts...>();
-        // TODO: add assertion concerning the number of entity sets
-        mEntitySets[EntitySetId{Ts::type...}] = std::make_unique<EntitySet<Ts...>>(
-            &mEntities, &mEntities.getEntityToManagedEntity(mEntitySets.size()));
+        mEntitySets[EntitySetId{Ts::type...}] = std::make_unique<EntitySet<Ts...>>(&mEntities);
     }
 
     template<typename ...Ts>
@@ -171,15 +167,15 @@ private:
     }
 
     template<typename T>
-    auto getComponentContainer()
+    auto& getComponentContainer()
     {
-        return static_cast<ComponentContainer<T>*>(mComponentContainers[T::type].get());
+        return static_cast<ComponentContainer<T>*>(mComponentContainers[T::type].get())->components;
     }
 
     template<typename T>
-    auto getComponentContainer() const
+    const auto& getComponentContainer() const
     {
-        return static_cast<const ComponentContainer<T>*>(mComponentContainers[T::type].get());
+        return static_cast<const ComponentContainer<T>*>(mComponentContainers[T::type].get())->components;
     }
 };
 

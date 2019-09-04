@@ -12,8 +12,7 @@ using EntitySetId = std::vector<std::size_t>;
 class BaseEntitySet
 {
 public:
-    BaseEntitySet(const EntitySetId& id, std::vector<Index>* entityToManagedEntity) :
-        mId(id), mEntityToManagedEntity(entityToManagedEntity)
+    BaseEntitySet()
     {
 
     }
@@ -28,7 +27,7 @@ public:
     void onEntityUpdated(Entity entity)
     {
         auto satisfied = satisfyRequirements(entity);
-        auto managed = (*mEntityToManagedEntity)[entity] != InvalidIndex;
+        auto managed = hasEntity(entity);
         if (satisfied && !managed)
             addEntity(entity);
         else if (!satisfied && managed)
@@ -37,13 +36,8 @@ public:
 
     void onEntityRemoved(Entity entity)
     {
-        if ((*mEntityToManagedEntity)[entity] != InvalidIndex)
+        if (hasEntity(entity))
             removeEntity(entity);
-    }
-
-    const EntitySetId& getId() const
-    {
-        return mId;
     }
 
 protected:
@@ -52,11 +46,16 @@ protected:
 private:
     const EntitySetId mId;
     std::vector<Entity> mManagedEntities;
-    std::vector<Index>* mEntityToManagedEntity = nullptr;
+    std::unordered_map<Entity, std::size_t> mEntityToIndex;
+
+    bool hasEntity(Entity entity) const
+    {
+        return mEntityToIndex.find(entity) != std::end(mEntityToIndex);
+    }
 
     void addEntity(Entity entity)
     {
-        (*mEntityToManagedEntity)[entity] = static_cast<Index>(mManagedEntities.size());
+        mEntityToIndex[entity] = mManagedEntities.size();
         mManagedEntities.emplace_back(entity);
         // TODO: send event
     }
@@ -64,9 +63,10 @@ private:
     void removeEntity(Entity entity)
     {
         // TODO: send event
-        auto index = (*mEntityToManagedEntity)[entity];
-        (*mEntityToManagedEntity)[mManagedEntities.back()] = index;
-        (*mEntityToManagedEntity)[entity] = InvalidIndex;
+        auto it = mEntityToIndex.find(entity);
+        auto index = it->second;
+        mEntityToIndex[mManagedEntities.back()] = index;
+        mEntityToIndex.erase(it);
         mManagedEntities[index] = mManagedEntities.back();
         mManagedEntities.pop_back();
     }
@@ -76,8 +76,7 @@ template<typename ...Ts>
 class EntitySet : public BaseEntitySet
 {
 public:
-    EntitySet(const EntityContainer* entities, std::vector<Index>* entityToManagedEntity) :
-        BaseEntitySet({Ts::type...}, entityToManagedEntity), mEntities(entities)
+    EntitySet(const EntityContainer* entities) : mEntities(entities)
     {
 
     }
@@ -85,7 +84,9 @@ public:
 protected:
     virtual bool satisfyRequirements(Entity entity) override
     {
-        return mEntities->hasComponents<Ts...>(entity);
+        // TODO: to improve: this is a duplicate of EntityManager::hasComponents
+        auto& componentIds = mEntities->get(entity);
+        return ((componentIds.find(Ts::type) != std::end(componentIds)) && ...);
     }
 
 private:

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstddef>
+#include "ComponentType.h"
 
 namespace ecs
 {
@@ -9,16 +9,16 @@ template<typename T>
 class Component
 {
 public:
-    static const std::size_t type;
+    static const ComponentType type;
 };
 
-std::size_t generateComponentType()
+ComponentType generateComponentType()
 {
-    static auto counter = std::size_t(0);
+    static auto counter = ComponentType(0);
     return counter++;
 }
 
 template<typename T>
-const std::size_t Component<T>::type = generateComponentType();
+const ComponentType Component<T>::type = generateComponentType();
 
 }
