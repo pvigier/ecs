@@ -108,6 +108,34 @@ public:
         return std::tie(std::as_const(getComponentContainer<Ts>().get(componentIds.find(Ts::type)->second))...);
     }
 
+    template<typename T>
+    T& getComponentById(ComponentId componentId)
+    {
+        checkComponentType<T>();
+        return getComponentContainer<T>().get(componentId);
+    }
+
+    template<typename T>
+    const T& getComponentById(ComponentId componentId) const
+    {
+        checkComponentType<T>();
+        return getComponentContainer<T>().get(componentId);
+    }
+
+    template<typename ...Ts>
+    std::tuple<Ts&...> getComponentsByIds(const std::array<ComponentId, sizeof...(Ts)>& componentIds)
+    {
+        checkComponentTypes<Ts...>();
+        return getComponentsByIds<Ts...>(componentIds, std::index_sequence_for<Ts...>{});
+    }
+
+    template<typename ...Ts>
+    std::tuple<const Ts&...> getComponentsByIds(const std::array<ComponentId, sizeof...(Ts)>& componentIds) const
+    {
+        checkComponentTypes<Ts...>();
+        return getComponentsByIds<Ts...>(componentIds, std::index_sequence_for<Ts...>{});
+    }
+
     template<typename T, typename ...Args>
     void addComponent(Entity entity, Args&&... args)
     {
@@ -142,11 +170,11 @@ public:
     }
 
     template<typename ...Ts>
-    const std::vector<Entity>& getEntitySet()
+    const auto& getEntitySet()
     {
         checkComponentTypes<Ts...>();
         assert(mEntitySets.find(EntitySetId{Ts::type...}) != std::end(mEntitySets));
-        return mEntitySets[EntitySetId{Ts::type...}]->getEntities();
+        return static_cast<EntitySet<Ts...>*>(mEntitySets[EntitySetId{Ts::type...}].get())->getEntities();
     }
 
 private:
@@ -176,6 +204,20 @@ private:
     const auto& getComponentContainer() const
     {
         return static_cast<const ComponentContainer<T>*>(mComponentContainers[T::type].get())->components;
+    }
+
+    template<typename ...Ts, std::size_t ...Is>
+    std::tuple<Ts&...> getComponentsByIds(const std::array<ComponentId, sizeof...(Ts)>& componentIds, std::index_sequence<Is...>)
+    {
+        checkComponentTypes<Ts...>();
+        return std::tie(getComponentContainer<Ts>().get(componentIds[Is])...);
+    }
+
+    template<typename ...Ts, std::size_t ...Is>
+    std::tuple<const Ts&...> getComponentsByIds(const std::array<ComponentId, sizeof...(Ts)>& componentIds, std::index_sequence<Is...>) const
+    {
+        checkComponentTypes<Ts...>();
+        return std::tie(std::as_const(getComponentContainer<Ts>().get(componentIds[Is]))...);
     }
 };
 

@@ -39,9 +39,9 @@ public:
 
     void update(float dt)
     {
-        for (const auto& entity : mEntityManager.getEntitySet<Position, Velocity>())
+        for (const auto& [entity, componentIds] : mEntityManager.getEntitySet<Position, Velocity>())
         {
-            auto [position, velocity] = mEntityManager.getComponents<Position, Velocity>(entity);
+            auto [position, velocity] = mEntityManager.getComponentsByIds<Position, Velocity>(componentIds);
             position.x += velocity.x * dt;
             position.y += velocity.y * dt;
         }

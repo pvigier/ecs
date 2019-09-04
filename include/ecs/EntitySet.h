@@ -19,11 +19,6 @@ public:
 
     virtual ~BaseEntitySet() = default;
 
-    const std::vector<Entity>& getEntities() const
-    {
-        return mManagedEntities;
-    }
-
     void onEntityUpdated(Entity entity)
     {
         auto satisfied = satisfyRequirements(entity);
@@ -42,43 +37,32 @@ public:
 
 protected:
     virtual bool satisfyRequirements(Entity entity) = 0;
+    virtual void addEntity(Entity entity) = 0;
+    virtual void removeEntity(Entity entity) = 0;
 
-private:
-    const EntitySetId mId;
-    std::vector<Entity> mManagedEntities;
     std::unordered_map<Entity, std::size_t> mEntityToIndex;
-
+private:
     bool hasEntity(Entity entity) const
     {
         return mEntityToIndex.find(entity) != std::end(mEntityToIndex);
     }
 
-    void addEntity(Entity entity)
-    {
-        mEntityToIndex[entity] = mManagedEntities.size();
-        mManagedEntities.emplace_back(entity);
-        // TODO: send event
-    }
-
-    void removeEntity(Entity entity)
-    {
-        // TODO: send event
-        auto it = mEntityToIndex.find(entity);
-        auto index = it->second;
-        mEntityToIndex[mManagedEntities.back()] = index;
-        mEntityToIndex.erase(it);
-        mManagedEntities[index] = mManagedEntities.back();
-        mManagedEntities.pop_back();
-    }
 };
 
 template<typename ...Ts>
 class EntitySet : public BaseEntitySet
 {
 public:
+    using ValueType = std::pair<Entity, std::array<ComponentId, sizeof...(Ts)>>;
+
     EntitySet(const EntityContainer* entities) : mEntities(entities)
     {
 
+    }
+
+    const std::vector<ValueType>& getEntities() const
+    {
+        return mManagedEntities;
     }
 
 protected:
@@ -89,7 +73,27 @@ protected:
         return ((componentIds.find(Ts::type) != std::end(componentIds)) && ...);
     }
 
+    virtual void addEntity(Entity entity) override
+    {
+        mEntityToIndex[entity] = mManagedEntities.size();
+        const auto& componentsIds = mEntities->get(entity);
+        mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{componentsIds.find(Ts::type)->second...});
+        // TODO: send event
+    }
+
+    virtual void removeEntity(Entity entity) override
+    {
+        // TODO: send event
+        auto it = mEntityToIndex.find(entity);
+        auto index = it->second;
+        mEntityToIndex[mManagedEntities.back().first] = index;
+        mEntityToIndex.erase(it);
+        mManagedEntities[index] = mManagedEntities.back();
+        mManagedEntities.pop_back();
+    }
+
 private:
+    std::vector<ValueType> mManagedEntities;
     const EntityContainer* mEntities = nullptr;
 };
 

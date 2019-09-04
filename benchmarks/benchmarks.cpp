@@ -47,8 +47,8 @@ public:
 
     void update()
     {
-        for (const auto& entity : mEntityManager.getEntitySet<Components...>())
-            benchmark::DoNotOptimize(mEntityManager.getComponents<Components...>(entity));
+        for (const auto& [entity, componentIds] : mEntityManager.getEntitySet<Components...>())
+            benchmark::DoNotOptimize(mEntityManager.getComponentsByIds<Components...>(componentIds));
     }
 
 private:
