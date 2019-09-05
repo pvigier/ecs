@@ -66,7 +66,6 @@ void createEntities(benchmark::State& state)
         auto manager = EntityManager(ComponentCount);
         (manager.registerComponent<Components>(), ...);
         manager.registerEntitySet<Components...>();
-        auto system = DummySystem<Components...>(manager);
         if constexpr (Reserve)
             manager.reserve(static_cast<std::size_t>(state.range()));
         for (auto i = 0; i < state.range(); ++i)

@@ -77,7 +77,10 @@ protected:
     {
         mEntityToIndex[entity] = mManagedEntities.size();
         const auto& componentsIds = mEntities->get(entity);
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wnull-dereference"
         mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{componentsIds.find(Ts::type)->second...});
+        #pragma GCC diagnostic pop
         // TODO: send event
     }
 
@@ -85,7 +88,10 @@ protected:
     {
         // TODO: send event
         auto it = mEntityToIndex.find(entity);
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wnull-dereference"
         auto index = it->second;
+        #pragma GCC diagnostic pop
         mEntityToIndex[mManagedEntities.back().first] = index;
         mEntityToIndex.erase(it);
         mManagedEntities[index] = mManagedEntities.back();
