@@ -1,7 +1,6 @@
 #pragma once
 
-#include "ComponentId.h"
-#include "SparseSet.h"
+#include "ComponentSparseSet.h"
 
 namespace ecs
 {
@@ -17,7 +16,7 @@ struct BaseComponentContainer
 template<typename T>
 struct ComponentContainer : public BaseComponentContainer
 {
-    SparseSet<ComponentId, T> components;
+    ComponentSparseSet<T> components;
 
     virtual void reserve(std::size_t size) override
     {

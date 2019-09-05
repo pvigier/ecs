@@ -36,6 +36,12 @@ struct Mass : public Component<Mass>
     float value;
 };
 
+template<typename ...Components, size_t ...Is>
+void extractComponents(const std::tuple<Components&...>& components, std::index_sequence<Is...>)
+{
+    benchmark::DoNotOptimize((std::get<Is>(components), ...));
+}
+
 template<typename ...Components>
 class DummySystem
 {
@@ -47,8 +53,8 @@ public:
 
     void update()
     {
-        for (const auto& [entity, componentIds] : mEntityManager.getEntitySet<Components...>())
-            benchmark::DoNotOptimize(mEntityManager.getComponentsByIds<Components...>(componentIds));
+        for (auto [entity, components] : mEntityManager.getEntitySet<Components...>())
+            extractComponents(components, std::index_sequence_for<Components...>{});
     }
 
 private:

@@ -137,7 +137,7 @@ TEST_P(EntityManagerTest, AddComponents)
         ASSERT_EQ(anotherPosition.x, getX(i));
         ASSERT_EQ(anotherPosition.y, getY(i));
     }
-    auto entitySetSize = manager.getEntitySet<Position>().size();
+    auto entitySetSize = manager.getEntitySet<Position>().getSize();
     ASSERT_EQ(entitySetSize, nbEntities);
 }
 
@@ -167,7 +167,7 @@ TEST_P(EntityManagerTest, AddAndModifyComponents)
         ASSERT_EQ(position.x, 2.0f * getX(i));
         ASSERT_EQ(position.y, 2.0f * getY(i));
     }
-    auto entitySetSize = manager.getEntitySet<Position>().size();
+    auto entitySetSize = manager.getEntitySet<Position>().getSize();
     ASSERT_EQ(entitySetSize, nbEntities);
 }
 
@@ -191,7 +191,7 @@ TEST_P(EntityManagerTest, AddAndRemoveComponents)
         ASSERT_FALSE(manager.hasComponent<Position>(entity));
         ASSERT_FALSE(manager.hasComponents<Position>(entity));
     }
-    auto entitySetSize = manager.getEntitySet<Position>().size();
+    auto entitySetSize = manager.getEntitySet<Position>().getSize();
     ASSERT_EQ(entitySetSize, 0);
 }
 
@@ -227,7 +227,7 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeComponents)
             ASSERT_EQ(position.y, getY(i));
         }
     }
-    auto entitySetSize = manager.getEntitySet<Position>().size();
+    auto entitySetSize = manager.getEntitySet<Position>().getSize();
     ASSERT_EQ(entitySetSize, nbEntities / 2);
 }
 
@@ -293,7 +293,7 @@ TEST_P(EntityManagerTest, AddSeveralComponents)
         ASSERT_EQ(velocity.y, getVy(i));
         ASSERT_EQ(mass.value, getMass(i));
     }
-    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().getSize();
     ASSERT_EQ(entitySetSize, nbEntities);
 }
 
@@ -362,7 +362,7 @@ TEST_P(EntityManagerTest, AddHeterogeneousEntities)
         else
             ASSERT_FALSE(hasAll);
     }
-    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().getSize();
     ASSERT_EQ(entitySetSize, (nbEntities - 1) / 30 + 1);
 }
 
@@ -417,7 +417,7 @@ TEST_P(EntityManagerTest, AddSeveralComponentsAndRemoveSome)
             ASSERT_EQ(mass.value, getMass(i));
         }
     }
-    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().getSize();
     ASSERT_EQ(entitySetSize, (nbEntities - 1) / 4 + 1);
 }
 
@@ -446,7 +446,7 @@ TEST_P(EntityManagerTest, AddAndRemoveEntities)
         auto entity = entities[i];
         manager.removeEntity(entity);
     }
-    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().getSize();
     ASSERT_EQ(entitySetSize, 0);
 }
 
@@ -503,7 +503,7 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
             }
         }
     }
-    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().getSize();
     if (nbEntities > 3)
         ASSERT_EQ(entitySetSize, (nbEntities - 4) / 4 - (nbEntities - 4) / 12);
     else
@@ -598,7 +598,7 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
             ASSERT_EQ(mass.value, getMass(i));
         }
     }
-    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().size();
+    auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().getSize();
     if (nbEntities > 3)
         ASSERT_EQ(entitySetSize, (nbEntities - 4) / 4 - (nbEntities - 4) / 12 + (nbEntities - 1) / 4 + 1);
     else

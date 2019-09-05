@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include "ComponentId.h"
-// TODO: #include "ComponentType.h"
+#include "ComponentType.h"
 #include "Entity.h"
 #include "SparseSet.h"
 

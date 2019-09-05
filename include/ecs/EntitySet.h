@@ -1,8 +1,7 @@
 #pragma once
 
-#include <functional>
-#include <vector>
 #include "EntityContainer.h"
+#include "EntitySetIterator.h"
 
 namespace ecs
 {
@@ -52,17 +51,44 @@ private:
 template<typename ...Ts>
 class EntitySet : public BaseEntitySet
 {
-public:
     using ValueType = std::pair<Entity, std::array<ComponentId, sizeof...(Ts)>>;
+    using UIterator = typename std::vector<ValueType>::iterator; // Underlying iterator
+    using UConstIterator = typename std::vector<ValueType>::const_iterator; // Underlying const iterator
+    using ComponentContainers = std::tuple<ComponentSparseSet<Ts>&...>;
 
-    EntitySet(const EntityContainer* entities) : mEntities(entities)
+public:
+    using Iterator = EntitySetIterator<UIterator, Ts...>;
+    using ConstIterator = EntitySetIterator<UConstIterator, const Ts...>;
+
+    EntitySet(const EntityContainer* entities, const ComponentContainers& componentContainers) :
+        mEntities(entities), mComponentContainers(componentContainers)
     {
 
     }
 
-    const std::vector<ValueType>& getEntities() const
+    std::size_t getSize() const
     {
-        return mManagedEntities;
+        return mManagedEntities.size();
+    }
+
+    Iterator begin()
+    {
+        return Iterator(mManagedEntities.begin(), mComponentContainers);
+    }
+
+    ConstIterator begin() const
+    {
+        return ConstIterator(mManagedEntities.begin(), mComponentContainers);
+    }
+
+    Iterator end()
+    {
+        return Iterator(mManagedEntities.end(), mComponentContainers);
+    }
+
+    ConstIterator end() const
+    {
+        return ConstIterator(mManagedEntities.end(), mComponentContainers);
     }
 
 protected:
@@ -101,6 +127,7 @@ protected:
 private:
     std::vector<ValueType> mManagedEntities;
     const EntityContainer* mEntities = nullptr;
+    ComponentContainers mComponentContainers;
 };
 
 }
