@@ -17,7 +17,7 @@ class Component;
 class EntityManager
 {
 public:
-    EntityManager(std::size_t nbComponents, std::size_t nbEntitySets)
+    EntityManager(std::size_t nbComponents)
     {
         mComponentContainers.resize(nbComponents);
     }

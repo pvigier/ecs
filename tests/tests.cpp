@@ -5,7 +5,6 @@
 using namespace ecs;
 
 constexpr auto ComponentCount = std::size_t(32);
-constexpr auto SystemCount = std::size_t(32);
 
 struct Position : public Component<Position>
 {
@@ -69,7 +68,7 @@ class EntityManagerTest : public ::testing::TestWithParam<std::tuple<bool, std::
 protected:
     EntityManager manager;
 
-    EntityManagerTest() : manager(ComponentCount, SystemCount)
+    EntityManagerTest() : manager(ComponentCount)
     {
 
     }

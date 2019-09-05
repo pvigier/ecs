@@ -5,7 +5,6 @@
 using namespace ecs;
 
 constexpr auto ComponentCount = 512;
-constexpr auto SystemCount = 32;
 
 struct Position : public Component<Position>
 {
@@ -55,7 +54,7 @@ int main()
 {
     constexpr auto nbEntities = std::size_t(10000);
     constexpr auto nbUpdates = std::size_t(100);
-    auto manager = EntityManager(ComponentCount, SystemCount);
+    auto manager = EntityManager(ComponentCount);
     manager.registerComponent<Position>();
     manager.registerComponent<Velocity>();
     manager.registerEntitySet<Position, Velocity>();
