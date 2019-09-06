@@ -17,6 +17,7 @@ public:
     EntityManager(std::size_t nbComponents)
     {
         mComponentContainers.resize(nbComponents);
+        mComponentToEntitySets.resize(nbComponents);
     }
 
     void reserve(std::size_t size)
@@ -112,7 +113,7 @@ public:
         auto componentId = getComponentSparseSet<T>().emplace(std::forward<Args>(args)...);
         mEntities.get(entity)[T::type] = componentId;
         // Send message to entity sets
-        for (auto& [entitySetId, entitySet] : mEntitySets)
+        for (auto entitySet : mComponentToEntitySets[T::type])
             entitySet->onEntityUpdated(entity);
     }
 
@@ -125,7 +126,7 @@ public:
         getComponentSparseSet<T>().erase(it->second);
         componentIds.erase(it);
         // Send message to entity sets
-        for (auto& [entitySetId, entitySet] : mEntitySets)
+        for (auto entitySet : mComponentToEntitySets[T::type])
             entitySet->onEntityUpdated(entity);
     }
 
@@ -135,8 +136,11 @@ public:
     void registerEntitySet()
     {
         checkComponentTypes<Ts...>();
-        mEntitySets[EntitySetId{Ts::type...}] = std::make_unique<EntitySet<Ts...>>(&mEntities,
+        assert(mEntitySets.find(EntitySetId{Ts::type...}) == std::end(mEntitySets));
+        auto entitySet = std::make_unique<EntitySet<Ts...>>(&mEntities,
             std::tie(getComponentSparseSet<Ts>()...));
+        (mComponentToEntitySets[Ts::type].push_back(entitySet.get()), ...);
+        mEntitySets[EntitySetId{Ts::type...}] = std::move(entitySet);
     }
 
     template<typename ...Ts>
@@ -159,6 +163,7 @@ private:
     std::vector<std::unique_ptr<BaseComponentContainer>> mComponentContainers;
     EntityContainer mEntities;
     std::unordered_map<EntitySetId, std::unique_ptr<BaseEntitySet>, HashEntitySetId> mEntitySets;
+    std::vector<std::vector<BaseEntitySet*>> mComponentToEntitySets;
 
     template<typename T>
     constexpr void checkComponentType() const
