@@ -9,7 +9,7 @@ template<typename T>
 class Component
 {
 public:
-    static const ComponentType type;
+    static const ComponentType Type;
 };
 
 ComponentType generateComponentType()
@@ -19,6 +19,6 @@ ComponentType generateComponentType()
 }
 
 template<typename T>
-const ComponentType Component<T>::type = generateComponentType();
+const ComponentType Component<T>::Type = generateComponentType();
 
 }

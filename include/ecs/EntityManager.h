@@ -55,7 +55,7 @@ public:
     void registerComponent()
     {
         checkComponentType<T>();
-        mComponentContainers[T::type] = std::make_unique<ComponentContainer<T>>();
+        mComponentContainers[T::Type] = std::make_unique<ComponentContainer<T>>();
     }
 
     template<typename T>
@@ -63,7 +63,7 @@ public:
     {
         checkComponentType<T>();
         auto& componentIds = mEntities.get(entity);
-        return componentIds.find(T::type) != std::end(componentIds);
+        return componentIds.find(T::Type) != std::end(componentIds);
     }
 
     template<typename ...Ts>
@@ -71,14 +71,14 @@ public:
     {
         checkComponentTypes<Ts...>();
         auto& componentIds = mEntities.get(entity);
-        return ((componentIds.find(Ts::type) != std::end(componentIds)) && ...);
+        return ((componentIds.find(Ts::Type) != std::end(componentIds)) && ...);
     }
 
     template<typename T>
     T& getComponent(Entity entity)
     {
         checkComponentType<T>();
-        auto componentId = mEntities.get(entity)[T::type];
+        auto componentId = mEntities.get(entity)[T::Type];
         return getComponentSparseSet<T>().get(componentId);
     }
 
@@ -86,7 +86,7 @@ public:
     const T& getComponent(Entity entity) const
     {
         checkComponentType<T>();
-        auto componentId = mEntities.get(entity).find(T::type)->second;
+        auto componentId = mEntities.get(entity).find(T::Type)->second;
         return getComponentSparseSet<T>().get(componentId);
     }
 
@@ -95,7 +95,7 @@ public:
     {
         checkComponentTypes<Ts...>();
         auto& componentIds = mEntities.get(entity);
-        return std::tie(getComponentSparseSet<Ts>().get(componentIds[Ts::type])...);
+        return std::tie(getComponentSparseSet<Ts>().get(componentIds[Ts::Type])...);
     }
 
     template<typename ...Ts>
@@ -103,7 +103,7 @@ public:
     {
         checkComponentTypes<Ts...>();
         auto& componentIds = mEntities.get(entity);
-        return std::tie(std::as_const(getComponentSparseSet<Ts>().get(componentIds.find(Ts::type)->second))...);
+        return std::tie(std::as_const(getComponentSparseSet<Ts>().get(componentIds.find(Ts::Type)->second))...);
     }
 
     template<typename T, typename ...Args>
@@ -111,9 +111,9 @@ public:
     {
         checkComponentType<T>();
         auto componentId = getComponentSparseSet<T>().emplace(std::forward<Args>(args)...);
-        mEntities.get(entity)[T::type] = componentId;
+        mEntities.get(entity)[T::Type] = componentId;
         // Send message to entity sets
-        for (auto entitySet : mComponentToEntitySets[T::type])
+        for (auto entitySet : mComponentToEntitySets[T::Type])
             entitySet->onEntityUpdated(entity);
     }
 
@@ -122,11 +122,11 @@ public:
     {
         checkComponentType<T>();
         auto& componentIds = mEntities.get(entity);
-        auto it = componentIds.find(T::type);
+        auto it = componentIds.find(T::Type);
         getComponentSparseSet<T>().erase(it->second);
         componentIds.erase(it);
         // Send message to entity sets
-        for (auto entitySet : mComponentToEntitySets[T::type])
+        for (auto entitySet : mComponentToEntitySets[T::Type])
             entitySet->onEntityUpdated(entity);
     }
 
@@ -136,27 +136,27 @@ public:
     void registerEntitySet()
     {
         checkComponentTypes<Ts...>();
-        assert(mEntitySets.find(EntitySetId{Ts::type...}) == std::end(mEntitySets));
+        assert(mEntitySets.find(EntitySetId{Ts::Type...}) == std::end(mEntitySets));
         auto entitySet = std::make_unique<EntitySet<Ts...>>(&mEntities,
             std::tie(getComponentSparseSet<Ts>()...));
-        (mComponentToEntitySets[Ts::type].push_back(entitySet.get()), ...);
-        mEntitySets[EntitySetId{Ts::type...}] = std::move(entitySet);
+        (mComponentToEntitySets[Ts::Type].push_back(entitySet.get()), ...);
+        mEntitySets[EntitySetId{Ts::Type...}] = std::move(entitySet);
     }
 
     template<typename ...Ts>
     EntitySet<Ts...>& getEntitySet()
     {
         checkComponentTypes<Ts...>();
-        assert(mEntitySets.find(EntitySetId{Ts::type...}) != std::end(mEntitySets));
-        return *static_cast<EntitySet<Ts...>*>(mEntitySets[EntitySetId{Ts::type...}].get());
+        assert(mEntitySets.find(EntitySetId{Ts::Type...}) != std::end(mEntitySets));
+        return *static_cast<EntitySet<Ts...>*>(mEntitySets[EntitySetId{Ts::Type...}].get());
     }
 
     template<typename ...Ts>
     const EntitySet<Ts...>& getEntitySet() const
     {
         checkComponentTypes<Ts...>();
-        assert(mEntitySets.find(EntitySetId{Ts::type...}) != std::end(mEntitySets));
-        return *static_cast<EntitySet<Ts...>*>(mEntitySets.find(EntitySetId{Ts::type...})->second.get());
+        assert(mEntitySets.find(EntitySetId{Ts::Type...}) != std::end(mEntitySets));
+        return *static_cast<EntitySet<Ts...>*>(mEntitySets.find(EntitySetId{Ts::Type...})->second.get());
     }
 
 private:
@@ -180,13 +180,13 @@ private:
     template<typename T>
     ComponentSparseSet<T>& getComponentSparseSet()
     {
-        return static_cast<ComponentContainer<T>*>(mComponentContainers[T::type].get())->components;
+        return static_cast<ComponentContainer<T>*>(mComponentContainers[T::Type].get())->components;
     }
 
     template<typename T>
     const ComponentSparseSet<T>& getComponentSparseSet() const
     {
-        return static_cast<const ComponentContainer<T>*>(mComponentContainers[T::type].get())->components;
+        return static_cast<const ComponentContainer<T>*>(mComponentContainers[T::Type].get())->components;
     }
 };
 

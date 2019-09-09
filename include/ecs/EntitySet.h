@@ -96,7 +96,7 @@ protected:
     {
         // TODO: to improve: this is a duplicate of EntityManager::hasComponents
         auto& componentIds = mEntities->get(entity);
-        return ((componentIds.find(Ts::type) != std::end(componentIds)) && ...);
+        return ((componentIds.find(Ts::Type) != std::end(componentIds)) && ...);
     }
 
     virtual void addEntity(Entity entity) override
@@ -105,7 +105,7 @@ protected:
         const auto& componentsIds = mEntities->get(entity);
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wnull-dereference"
-        mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{componentsIds.find(Ts::type)->second...});
+        mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{componentsIds.find(Ts::Type)->second...});
         #pragma GCC diagnostic pop
         // TODO: send event
     }
