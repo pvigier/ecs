@@ -12,7 +12,7 @@ public:
     static const ComponentType Type;
 };
 
-ComponentType generateComponentType()
+inline ComponentType generateComponentType()
 {
     static auto counter = ComponentType(0);
     return counter++;
