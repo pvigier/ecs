@@ -40,6 +40,7 @@ protected:
     virtual void removeEntity(Entity entity) = 0;
 
     std::unordered_map<Entity, std::size_t> mEntityToIndex;
+
 private:
     bool hasEntity(Entity entity) const
     {
@@ -59,6 +60,9 @@ class EntitySet : public BaseEntitySet
 public:
     using Iterator = EntitySetIterator<UIterator, Ts...>;
     using ConstIterator = EntitySetIterator<UConstIterator, const Ts...>;
+    using ListenerId = uint32_t;
+    using EntityAddedListener = std::function<void(Entity)>;
+    using EntityRemovedListener = std::function<void(Entity)>;
 
     EntitySet(const EntityContainer* entities, const ComponentContainers& componentContainers) :
         mEntities(entities), mComponentContainers(componentContainers)
@@ -91,6 +95,28 @@ public:
         return ConstIterator(mManagedEntities.end(), mComponentContainers);
     }
 
+    // Listeners
+
+    ListenerId addEntityAddedListener(EntityAddedListener listener)
+    {
+        return mEntityAddedListeners.emplace(std::move(listener)).first;
+    }
+
+    void removeEntityAddedListener(ListenerId listenerId)
+    {
+        mEntityAddedListeners.erase(listenerId);
+    }
+
+    ListenerId addEntityRemovedListener(EntityRemovedListener listener)
+    {
+        return mEntityRemovedListeners.emplace(std::move(listener)).first;
+    }
+
+    void removeEntityRemovedListener(ListenerId listenerId)
+    {
+        mEntityRemovedListeners.erase(listenerId);
+    }
+
 protected:
     virtual bool satisfyRequirements(Entity entity) override
     {
@@ -107,12 +133,16 @@ protected:
         #pragma GCC diagnostic ignored "-Wnull-dereference"
         mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{componentsIds.find(Ts::Type)->second...});
         #pragma GCC diagnostic pop
-        // TODO: send event
+        // Call listeners
+        for (const auto& listener : mEntityAddedListeners.getObjects())
+            listener(entity);
     }
 
     virtual void removeEntity(Entity entity) override
     {
-        // TODO: send event
+        // Call listeners
+        for (const auto& listener : mEntityRemovedListeners.getObjects())
+            listener(entity);
         auto it = mEntityToIndex.find(entity);
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wnull-dereference"
@@ -128,6 +158,8 @@ private:
     std::vector<ValueType> mManagedEntities;
     const EntityContainer* mEntities = nullptr;
     ComponentContainers mComponentContainers;
+    SparseSet<ListenerId, EntityAddedListener> mEntityAddedListeners;
+    SparseSet<ListenerId, EntityRemovedListener> mEntityRemovedListeners;
 };
 
 }
