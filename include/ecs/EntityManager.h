@@ -136,7 +136,8 @@ public:
     void registerEntitySet()
     {
         checkComponentTypes<Ts...>();
-        assert(mEntitySets.find(EntitySetId{Ts::Type...}) == std::end(mEntitySets));
+        assert(mEntitySets.find(EntitySetId{Ts::Type...}) == std::end(mEntitySets) &&
+            "This entity set has already been registered");
         auto entitySet = std::make_unique<EntitySet<Ts...>>(&mEntities,
             std::tie(getComponentSparseSet<Ts>()...));
         (mComponentToEntitySets[Ts::Type].push_back(entitySet.get()), ...);
@@ -147,7 +148,8 @@ public:
     EntitySet<Ts...>& getEntitySet()
     {
         checkComponentTypes<Ts...>();
-        assert(mEntitySets.find(EntitySetId{Ts::Type...}) != std::end(mEntitySets));
+        assert(mEntitySets.find(EntitySetId{Ts::Type...}) != std::end(mEntitySets) &&
+            "An entity set must be registered before using it");
         return *static_cast<EntitySet<Ts...>*>(mEntitySets[EntitySetId{Ts::Type...}].get());
     }
 
@@ -155,7 +157,8 @@ public:
     const EntitySet<Ts...>& getEntitySet() const
     {
         checkComponentTypes<Ts...>();
-        assert(mEntitySets.find(EntitySetId{Ts::Type...}) != std::end(mEntitySets));
+        assert(mEntitySets.find(EntitySetId{Ts::Type...}) != std::end(mEntitySets) &&
+            "An entity set must be registered before using it");
         return *static_cast<EntitySet<Ts...>*>(mEntitySets.find(EntitySetId{Ts::Type...})->second.get());
     }
 
@@ -168,7 +171,7 @@ private:
     template<typename T>
     constexpr void checkComponentType() const
     {
-        static_assert(std::is_base_of_v<Component<T>, T>);
+        static_assert(std::is_base_of_v<Component<T>, T>, "A component of type T must inherit Component<T>");
     }
 
     template<typename ...Ts>
