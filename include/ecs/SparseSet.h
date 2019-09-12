@@ -8,9 +8,9 @@ namespace ecs
 template<typename Id, typename T>
 class SparseSet
 {
-public:
-    static constexpr auto Undefined = std::numeric_limits<Id>::max();
+    static constexpr auto Undefined = std::numeric_limits<std::size_t>::max();
 
+public:
     template<typename ...Args>
     std::pair<Id, T&> emplace(Args&& ...args)
     {
