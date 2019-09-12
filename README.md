@@ -7,10 +7,9 @@
 
 `ecs` aims to be:
 
-* simple
-* lightweight
 * easy to use
 * fast
+* lightweight
 * header only
 * implemented with modern C++ features (C++17)
 
@@ -32,50 +31,42 @@ struct Velocity : public Component<Velocity>
 };
 ```
 
-Now, let us define a system that will operate on the components:
+A component of type `T` must inherit `Component<T>`.
+
+Now, let us create an entity manager and register the components:
 
 ```cpp
-class PhysicsSystem : public System
-{
-public:
-    PhysicsSystem(EntityManager& entityManager) : mEntityManager(entityManager)
-    {
-        setRequirements<Position, Velocity>();
-    }
-
-    void update(float dt)
-    {
-        for (const auto& entity : getManagedEntities())
-        {
-            auto [position, velocity] = mEntityManager.getComponents<Position, Velocity>(entity);
-            position.x += velocity.x * dt;
-            position.y += velocity.y * dt;
-        }
-    }
-
-private:
-    EntityManager& mEntityManager;
-};
-```
-
-Finally, we create an entity manager, register the components, create a system and some entities:
-
-```cpp
-auto nbComponents = 2;
-auto nbSystems = 1;
-auto manager = EntityManager(nbComponents, nbSystems);
+constexpr auto NbComponents = 2;
+auto manager = EntityManager(NbComponents);
 manager.registerComponent<Position>();
 manager.registerComponent<Velocity>();
-auto system = manager.createSystem<PhysicsSystem>(manager);
-for (auto i = 0; i < 10; ++i)
-{
-    auto entity = manager.createEntity();
-    manager.addComponent<Position>(entity);
-    manager.addComponent<Velocity>(entity);
-}
+```
+
+Next, we can create an entity set. An entity set tracks all entities that fullfill a certain requirement on components. For instance, let us create an entity set that will track all entities that have `Position` and `Velocity` components:
+
+```cpp
+manager.registerEntitySet<Position, Velocity>();
+```
+
+Let us create an entity with both components:
+
+```cpp
+auto entity = manager.createEntity();
+manager.addComponent<Position>(entity);
+manager.addComponent<Velocity>(entity);
+```
+
+Finally, we can use the entity set we created to find all entities that have both components and update their positions:
+
+```cpp
 auto dt = 1.0f / 60.0f;
-while (true)
-    system->update(dt);
+for (auto [entity, components] : manager.getEntitySet<Position, Velocity>())
+{
+    auto [position, velocity] = components;
+    // Update the position
+    position.x += velocity.x * dt;
+    position.y += velocity.y * dt;
+}
 ```
 
 It is that easy!
