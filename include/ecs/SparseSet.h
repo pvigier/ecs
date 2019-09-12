@@ -12,11 +12,11 @@ public:
     static constexpr auto Undefined = std::numeric_limits<Id>::max();
 
     template<typename ...Args>
-    Id emplace(Args&& ...args)
+    std::pair<Id, T&> emplace(Args&& ...args)
     {
         // Add object
         std::size_t i = mObjects.size();
-        mObjects.emplace_back(std::forward<Args>(args)...);
+        auto& object = mObjects.emplace_back(std::forward<Args>(args)...);
         // Get the correct id and set the links
         Id id;
         if (mFreeIds.empty())
@@ -31,7 +31,7 @@ public:
             mIdToIndex[id] = i;
         }
         mIndexToId.push_back(id);
-        return id;
+        return std::pair<Id, T&>(id, object);
     }
 
     bool has(Id id)

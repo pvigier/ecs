@@ -34,7 +34,7 @@ public:
 
     Entity createEntity()
     {
-        return mEntities.emplace();
+        return mEntities.emplace().first;
     }
 
     void removeEntity(Entity entity)
@@ -107,14 +107,16 @@ public:
     }
 
     template<typename T, typename ...Args>
-    void addComponent(Entity entity, Args&&... args)
+    T& addComponent(Entity entity, Args&&... args)
     {
         checkComponentType<T>();
-        auto componentId = getComponentSparseSet<T>().emplace(std::forward<Args>(args)...);
+        auto [componentId, component] = getComponentSparseSet<T>().emplace(std::forward<Args>(args)...);
         mEntities.get(entity)[T::Type] = componentId;
         // Send message to entity sets
         for (auto entitySet : mComponentToEntitySets[T::Type])
             entitySet->onEntityUpdated(entity);
+        // Return the created component
+        return component;
     }
 
     template<typename T>
