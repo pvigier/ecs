@@ -84,9 +84,11 @@ void createEntities(benchmark::State& state)
     state.SetItemsProcessed(static_cast<std::size_t>(nbItems));
     state.SetComplexityN(state.range());
 }
+BENCHMARK_TEMPLATE(createEntities, 512, true)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 //BENCHMARK_TEMPLATE(createEntities, 512, true, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 //BENCHMARK_TEMPLATE(createEntities, 512, true, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 //BENCHMARK_TEMPLATE(createEntities, 512, true, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+BENCHMARK_TEMPLATE(createEntities, 512, false)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createEntities, 512, false, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createEntities, 512, false, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(createEntities, 512, false, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
