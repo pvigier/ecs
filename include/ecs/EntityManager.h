@@ -138,12 +138,13 @@ public:
     void registerEntitySet()
     {
         checkComponentTypes<Ts...>();
-        assert(mEntitySets.find(EntitySetId{Ts::Type...}) == std::end(mEntitySets) &&
-            "This entity set has already been registered");
-        auto entitySet = std::make_unique<EntitySet<Ts...>>(&mEntities,
-            std::tie(getComponentSparseSet<Ts>()...));
-        (mComponentToEntitySets[Ts::Type].push_back(entitySet.get()), ...);
-        mEntitySets[EntitySetId{Ts::Type...}] = std::move(entitySet);
+        if (mEntitySets.find(EntitySetId{Ts::Type...}) == std::end(mEntitySets))
+        {
+            auto entitySet = std::make_unique<EntitySet<Ts...>>(&mEntities,
+                std::tie(getComponentSparseSet<Ts>()...));
+            (mComponentToEntitySets[Ts::Type].push_back(entitySet.get()), ...);
+            mEntitySets[EntitySetId{Ts::Type...}] = std::move(entitySet);
+        }
     }
 
     template<typename ...Ts>
