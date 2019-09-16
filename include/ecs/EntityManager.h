@@ -17,7 +17,11 @@ public:
     EntityManager()
     {
         auto nbComponents = BaseComponent::getComponentCount();
+        // Component containers
         mComponentContainers.resize(nbComponents);
+        for (auto type = std::size_t(0); type < mComponentContainers.size(); ++type)
+            mComponentContainers[type] = BaseComponent::createComponentContainer(type);
+        // Entity sets
         mComponentToEntitySets.resize(nbComponents);
     }
 
@@ -51,13 +55,6 @@ public:
     }
 
     // Components
-
-    template<typename T>
-    void registerComponent()
-    {
-        checkComponentType<T>();
-        mComponentContainers[T::Type] = std::make_unique<ComponentContainer<T>>();
-    }
 
     template<typename T>
     bool hasComponent(Entity entity) const

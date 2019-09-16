@@ -70,7 +70,6 @@ protected:
 TEST_P(EntityManagerTest, AddComponents)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
     manager.registerEntitySet<Position>();
     if (reserve)
         manager.reserve(nbEntities);
@@ -132,7 +131,6 @@ TEST_P(EntityManagerTest, AddComponents)
 TEST_P(EntityManagerTest, AddAndModifyComponents)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
     manager.registerEntitySet<Position>();
     if (reserve)
         manager.reserve(nbEntities);
@@ -162,7 +160,6 @@ TEST_P(EntityManagerTest, AddAndModifyComponents)
 TEST_P(EntityManagerTest, AddAndRemoveComponents)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
     manager.registerEntitySet<Position>();
     if (reserve)
         manager.reserve(nbEntities);
@@ -186,7 +183,6 @@ TEST_P(EntityManagerTest, AddAndRemoveComponents)
 TEST_P(EntityManagerTest, AddAndRemoveSomeComponents)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
     manager.registerEntitySet<Position>();
     if (reserve)
         manager.reserve(nbEntities);
@@ -222,9 +218,6 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeComponents)
 TEST_P(EntityManagerTest, AddSeveralComponents)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
-    manager.registerComponent<Velocity>();
-    manager.registerComponent<Mass>();
     manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
@@ -288,9 +281,6 @@ TEST_P(EntityManagerTest, AddSeveralComponents)
 TEST_P(EntityManagerTest, AddHeterogeneousEntities)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
-    manager.registerComponent<Velocity>();
-    manager.registerComponent<Mass>();
     manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
@@ -357,9 +347,6 @@ TEST_P(EntityManagerTest, AddHeterogeneousEntities)
 TEST_P(EntityManagerTest, AddSeveralComponentsAndRemoveSome)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
-    manager.registerComponent<Velocity>();
-    manager.registerComponent<Mass>();
     manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
@@ -412,9 +399,6 @@ TEST_P(EntityManagerTest, AddSeveralComponentsAndRemoveSome)
 TEST_P(EntityManagerTest, AddAndRemoveEntities)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
-    manager.registerComponent<Velocity>();
-    manager.registerComponent<Mass>();
     manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
@@ -441,9 +425,6 @@ TEST_P(EntityManagerTest, AddAndRemoveEntities)
 TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
-    manager.registerComponent<Velocity>();
-    manager.registerComponent<Mass>();
     manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);
@@ -501,9 +482,6 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
 TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
 {
     auto [reserve, nbEntities] = GetParam();
-    manager.registerComponent<Position>();
-    manager.registerComponent<Velocity>();
-    manager.registerComponent<Mass>();
     manager.registerEntitySet<Position, Velocity, Mass>();
     if (reserve)
         manager.reserve(nbEntities);

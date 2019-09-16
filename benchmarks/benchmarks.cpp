@@ -70,7 +70,6 @@ void createEntities(benchmark::State& state)
     for (auto _ : state)
     {
         auto manager = EntityManager();
-        (manager.registerComponent<Components>(), ...);
         manager.registerEntitySet<Components...>();
         if constexpr (Reserve)
             manager.reserve(static_cast<std::size_t>(state.range()));
@@ -97,7 +96,6 @@ template<bool Reserve, typename ...Components>
 void iterateEntities(benchmark::State& state)
 {
     auto manager = EntityManager();
-    (manager.registerComponent<Components>(), ...);
     manager.registerEntitySet<Components...>();
     auto system = DummySystem<Components...>(manager);
     if constexpr (Reserve)
@@ -126,7 +124,6 @@ void createThenRemoveEntities(benchmark::State& state)
     for (auto _ : state)
     {
         auto manager = EntityManager();
-        (manager.registerComponent<Components>(), ...);
         manager.registerEntitySet<Components...>();
         auto system = DummySystem<Components...>(manager);
         if constexpr (Reserve)
