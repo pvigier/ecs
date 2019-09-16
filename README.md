@@ -33,21 +33,13 @@ struct Velocity : public Component<Velocity>
 
 A component of type `T` must inherit `Component<T>`.
 
-Now, let us create an entity manager and register the components:
+Now, let us create an entity manager:
 
 ```cpp
 auto manager = EntityManager();
-manager.registerComponent<Position>();
-manager.registerComponent<Velocity>();
 ```
 
-Next, we can create an entity set. An entity set tracks all entities that fullfill a certain requirement on components. For instance, let us create an entity set that will track all entities that have `Position` and `Velocity` components:
-
-```cpp
-manager.registerEntitySet<Position, Velocity>();
-```
-
-Let us create an entity with both components:
+Next, let us create an entity with both components:
 
 ```cpp
 auto entity = manager.createEntity();
@@ -55,7 +47,7 @@ manager.addComponent<Position>(entity);
 manager.addComponent<Velocity>(entity);
 ```
 
-Finally, we can use the entity set we created to find all entities that have both components and update their positions:
+Finally, we can use `getEntitySet` to query all entities that have both components and update their positions:
 
 ```cpp
 auto dt = 1.0f / 60.0f;
