@@ -14,8 +14,9 @@ class Component;
 class EntityManager
 {
 public:
-    EntityManager(std::size_t nbComponents)
+    EntityManager()
     {
+        auto nbComponents = BaseComponent::getComponentCount();
         mComponentContainers.resize(nbComponents);
         mComponentToEntitySets.resize(nbComponents);
     }

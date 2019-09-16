@@ -5,20 +5,34 @@
 namespace ecs
 {
 
+class BaseComponent
+{
+public:
+    static std::size_t getComponentCount()
+    {
+        return mCounter;
+    }
+
+protected:
+    static ComponentType generateComponentType()
+    {
+        return static_cast<ComponentType>(mCounter++);
+    }
+
+private:
+    static std::size_t mCounter;
+};
+
+std::size_t BaseComponent::mCounter = 0;
+
 template<typename T>
-class Component
+class Component : private BaseComponent
 {
 public:
     static const ComponentType Type;
 };
 
-inline ComponentType generateComponentType()
-{
-    static auto counter = ComponentType(0);
-    return counter++;
-}
-
 template<typename T>
-const ComponentType Component<T>::Type = generateComponentType();
+const ComponentType Component<T>::Type = BaseComponent::generateComponentType();
 
 }

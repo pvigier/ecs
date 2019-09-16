@@ -4,8 +4,6 @@
 
 using namespace ecs;
 
-constexpr auto ComponentCount = std::size_t(32);
-
 struct Position : public Component<Position>
 {
     Position(float X = 0.0, float Y = 0.0) : x(X), y(Y)
@@ -67,16 +65,6 @@ class EntityManagerTest : public ::testing::TestWithParam<std::tuple<bool, std::
 {
 protected:
     EntityManager manager;
-
-    EntityManagerTest() : manager(ComponentCount)
-    {
-
-    }
-
-    ~EntityManagerTest() override
-    {
-
-    }
 };
 
 TEST_P(EntityManagerTest, AddComponents)
