@@ -53,7 +53,6 @@ int main()
     constexpr auto nbEntities = std::size_t(10000);
     constexpr auto nbUpdates = std::size_t(100);
     auto manager = EntityManager();
-    manager.registerEntitySet<Position, Velocity>();
     auto system = PhysicsSystem(manager);
     manager.reserve(nbEntities);
     for (auto i = std::size_t(0); i < nbEntities; ++i)

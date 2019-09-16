@@ -1,16 +1,34 @@
 #pragma once
 
-#include "EntityContainer.h"
+#include <functional>
+#include "ComponentContainer.h"
 #include "EntitySetIterator.h"
+#include "EntityContainer.h"
 
 namespace ecs
 {
 
-using EntitySetId = std::vector<std::size_t>;
+using EntitySetType = std::size_t;
+
+template<typename ...Ts>
+class EntitySet;
 
 class BaseEntitySet
 {
 public:
+    static std::size_t getEntitySetCount()
+    {
+        return sFactories.size();
+    }
+
+    static std::unique_ptr<BaseEntitySet> createEntitySet(std::size_t type,
+        const EntityContainer& entities,
+        const std::vector<std::unique_ptr<BaseComponentContainer>>& componentContainers,
+        std::vector<std::vector<BaseEntitySet*>>& componentToEntitySets)
+    {
+        return sFactories[type](entities, componentContainers, componentToEntitySets);
+    }
+
     BaseEntitySet()
     {
 
@@ -41,13 +59,37 @@ protected:
 
     std::unordered_map<Entity, std::size_t> mEntityToIndex;
 
+    template<typename ...Ts>
+    static EntitySetType generateEntitySetType()
+    {
+        sFactories.push_back([](const EntityContainer& entities,
+            const std::vector<std::unique_ptr<BaseComponentContainer>>& componentContainers,
+            std::vector<std::vector<BaseEntitySet*>>& componentToEntitySets)
+            -> std::unique_ptr<BaseEntitySet>
+        {
+            auto entitySet = std::make_unique<EntitySet<Ts...>>(entities,
+                std::tie(static_cast<ComponentContainer<Ts>*>(componentContainers[Ts::Type].get())->components...));
+            (componentToEntitySets[Ts::Type].push_back(entitySet.get()), ...);
+            return std::move(entitySet);
+        });
+        return sFactories.size() - 1;
+    }
+
 private:
+    using EntitySetFactory = std::unique_ptr<BaseEntitySet>(*)(
+        const EntityContainer&,
+        const std::vector<std::unique_ptr<BaseComponentContainer>>&,
+        std::vector<std::vector<BaseEntitySet*>>&);
+
+    static std::vector<EntitySetFactory> sFactories;
+
     bool hasEntity(Entity entity) const
     {
         return mEntityToIndex.find(entity) != std::end(mEntityToIndex);
     }
-
 };
+
+std::vector<BaseEntitySet::EntitySetFactory> BaseEntitySet::sFactories;
 
 template<typename ...Ts>
 class EntitySet : public BaseEntitySet
@@ -64,7 +106,9 @@ public:
     using EntityAddedListener = std::function<void(Entity)>;
     using EntityRemovedListener = std::function<void(Entity)>;
 
-    EntitySet(const EntityContainer* entities, const ComponentContainers& componentContainers) :
+    static const EntitySetType Type;
+
+    EntitySet(const EntityContainer& entities, const ComponentContainers& componentContainers) :
         mEntities(entities), mComponentContainers(componentContainers)
     {
 
@@ -121,14 +165,14 @@ protected:
     virtual bool satisfyRequirements(Entity entity) override
     {
         // TODO: to improve: this is a duplicate of EntityManager::hasComponents
-        auto& componentIds = mEntities->get(entity);
+        auto& componentIds = mEntities.get(entity);
         return ((componentIds.find(Ts::Type) != std::end(componentIds)) && ...);
     }
 
     virtual void addEntity(Entity entity) override
     {
         mEntityToIndex[entity] = mManagedEntities.size();
-        const auto& componentsIds = mEntities->get(entity);
+        const auto& componentsIds = mEntities.get(entity);
         #pragma GCC diagnostic push
         #pragma GCC diagnostic ignored "-Wnull-dereference"
         mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{componentsIds.find(Ts::Type)->second...});
@@ -156,10 +200,13 @@ protected:
 
 private:
     std::vector<ValueType> mManagedEntities;
-    const EntityContainer* mEntities = nullptr;
+    const EntityContainer& mEntities;
     ComponentContainers mComponentContainers;
     SparseSet<ListenerId, EntityAddedListener> mEntityAddedListeners;
     SparseSet<ListenerId, EntityRemovedListener> mEntityRemovedListeners;
 };
+
+template<typename ...Ts>
+const EntitySetType EntitySet<Ts...>::Type = BaseEntitySet::generateEntitySetType<Ts...>();
 
 }

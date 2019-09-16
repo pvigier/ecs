@@ -1,9 +1,6 @@
 #pragma once
 
-#include <cassert>
-#include <memory>
-#include "ComponentContainer.h"
-#include "hash.h"
+#include "EntitySet.h"
 
 namespace ecs
 {
@@ -23,15 +20,13 @@ public:
             mComponentContainers[type] = BaseComponent::createComponentContainer(type);
         // Entity sets
         mComponentToEntitySets.resize(nbComponents);
+        mEntitySets.resize(BaseEntitySet::getEntitySetCount());
+        for (auto type = std::size_t(0); type < mEntitySets.size(); ++type)
+            mEntitySets[type] = BaseEntitySet::createEntitySet(type, mEntities, mComponentContainers, mComponentToEntitySets);
     }
 
     void reserve(std::size_t size)
     {
-        for (auto& componentContainer : mComponentContainers)
-        {
-            if (componentContainer)
-                componentContainer->reserve(size);
-        }
         mEntities.reserve(size);
     }
 
@@ -48,7 +43,7 @@ public:
         for (auto& [componentType, componentId] : mEntities.get(entity))
             mComponentContainers[componentType]->remove(componentId);
         // Send message to entity sets
-        for (auto& [entitySetId, entitySet] : mEntitySets)
+        for (auto& entitySet : mEntitySets)
             entitySet->onEntityRemoved(entity);
         // Remove entity
         mEntities.erase(entity);
@@ -121,6 +116,7 @@ public:
     void removeComponent(Entity entity)
     {
         checkComponentType<T>();
+        // Remove component from entity and component container
         auto& componentIds = mEntities.get(entity);
         auto it = componentIds.find(T::Type);
         getComponentSparseSet<T>().erase(it->second);
@@ -133,40 +129,23 @@ public:
     // Entity sets
 
     template<typename ...Ts>
-    void registerEntitySet()
-    {
-        checkComponentTypes<Ts...>();
-        if (mEntitySets.find(EntitySetId{Ts::Type...}) == std::end(mEntitySets))
-        {
-            auto entitySet = std::make_unique<EntitySet<Ts...>>(&mEntities,
-                std::tie(getComponentSparseSet<Ts>()...));
-            (mComponentToEntitySets[Ts::Type].push_back(entitySet.get()), ...);
-            mEntitySets[EntitySetId{Ts::Type...}] = std::move(entitySet);
-        }
-    }
-
-    template<typename ...Ts>
     EntitySet<Ts...>& getEntitySet()
     {
         checkComponentTypes<Ts...>();
-        assert(mEntitySets.find(EntitySetId{Ts::Type...}) != std::end(mEntitySets) &&
-            "An entity set must be registered before using it");
-        return *static_cast<EntitySet<Ts...>*>(mEntitySets[EntitySetId{Ts::Type...}].get());
+        return *static_cast<EntitySet<Ts...>*>(mEntitySets[EntitySet<Ts...>::Type].get());
     }
 
     template<typename ...Ts>
     const EntitySet<Ts...>& getEntitySet() const
     {
         checkComponentTypes<Ts...>();
-        assert(mEntitySets.find(EntitySetId{Ts::Type...}) != std::end(mEntitySets) &&
-            "An entity set must be registered before using it");
-        return *static_cast<EntitySet<Ts...>*>(mEntitySets.find(EntitySetId{Ts::Type...})->second.get());
+        return *static_cast<EntitySet<Ts...>*>(mEntitySets[EntitySet<Ts...>::Type].get());
     }
 
 private:
     std::vector<std::unique_ptr<BaseComponentContainer>> mComponentContainers;
     EntityContainer mEntities;
-    std::unordered_map<EntitySetId, std::unique_ptr<BaseEntitySet>, HashEntitySetId> mEntitySets;
+    std::vector<std::unique_ptr<BaseEntitySet>> mEntitySets;
     std::vector<std::vector<BaseEntitySet*>> mComponentToEntitySets;
 
     template<typename T>
