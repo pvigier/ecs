@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include "ComponentContainer.h"
 #include "EntitySetIterator.h"
 #include "EntityContainer.h"

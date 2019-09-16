@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Component.h"
 #include "EntitySet.h"
 
 namespace ecs
