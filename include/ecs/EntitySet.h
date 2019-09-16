@@ -90,7 +90,7 @@ private:
     }
 };
 
-std::vector<BaseEntitySet::EntitySetFactory> BaseEntitySet::sFactories;
+inline std::vector<BaseEntitySet::EntitySetFactory> BaseEntitySet::sFactories;
 
 template<typename ...Ts>
 class EntitySet : public BaseEntitySet

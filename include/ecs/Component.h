@@ -37,7 +37,7 @@ private:
     static std::vector<ComponentContainerFactory> sFactories;
 };
 
-std::vector<BaseComponent::ComponentContainerFactory> BaseComponent::sFactories;
+inline std::vector<BaseComponent::ComponentContainerFactory> BaseComponent::sFactories;
 
 template<typename T>
 class Component : private BaseComponent
