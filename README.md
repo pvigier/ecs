@@ -36,8 +36,7 @@ A component of type `T` must inherit `Component<T>`.
 Now, let us create an entity manager and register the components:
 
 ```cpp
-constexpr auto NbComponents = 2;
-auto manager = EntityManager(NbComponents);
+auto manager = EntityManager();
 manager.registerComponent<Position>();
 manager.registerComponent<Velocity>();
 ```
