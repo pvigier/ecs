@@ -10,20 +10,20 @@ class BaseComponent
 public:
     static std::size_t getComponentCount()
     {
-        return mCounter;
+        return sCounter;
     }
 
 protected:
     static ComponentType generateComponentType()
     {
-        return static_cast<ComponentType>(mCounter++);
+        return static_cast<ComponentType>(sCounter++);
     }
 
 private:
-    static std::size_t mCounter;
+    static std::size_t sCounter;
 };
 
-std::size_t BaseComponent::mCounter = 0;
+std::size_t BaseComponent::sCounter = 0;
 
 template<typename T>
 class Component : private BaseComponent
