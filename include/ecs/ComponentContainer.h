@@ -5,11 +5,14 @@
 namespace ecs
 {
 
+struct BaseComponent;
+
 struct BaseComponentContainer
 {
     virtual ~BaseComponentContainer() = default;
 
     virtual void reserve(std::size_t size) = 0;
+    virtual BaseComponent& get(ComponentId componentId) = 0;
     virtual void remove(ComponentId componentId) = 0;
 };
 
@@ -21,6 +24,11 @@ struct ComponentContainer : public BaseComponentContainer
     virtual void reserve(std::size_t size) override
     {
         components.reserve(size);
+    }
+
+    virtual BaseComponent& get(ComponentId componentId) override
+    {
+        return components.get(componentId);
     }
 
     virtual void remove(ComponentId componentId)

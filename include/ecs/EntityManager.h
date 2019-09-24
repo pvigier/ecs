@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Component.h"
 #include "EntitySet.h"
+#include "Visitor.h"
 
 namespace ecs
 {
@@ -48,6 +48,13 @@ public:
             entitySet->onEntityRemoved(entity);
         // Remove entity
         mEntities.erase(entity);
+    }
+
+    void visitEntity(Entity entity, const Visitor& visitor)
+    {
+        auto& componentIds = mEntities.get(entity);
+        for (const auto& [componentType, componentId] : componentIds)
+            visitor.handle(componentType, mComponentContainers[componentType]->get(componentId));
     }
 
     // Components

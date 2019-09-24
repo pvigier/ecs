@@ -40,7 +40,7 @@ private:
 inline std::vector<BaseComponent::ComponentContainerFactory> BaseComponent::sFactories;
 
 template<typename T>
-class Component : private BaseComponent
+class Component : public BaseComponent
 {
 public:
     static const ComponentType Type;
