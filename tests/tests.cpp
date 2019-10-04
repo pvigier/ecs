@@ -618,6 +618,58 @@ TEST_P(EntityManagerTest, EntitySet)
     ASSERT_EQ(entitiesWithThree, entitiesInEntitySet);
 }
 
+TEST_P(EntityManagerTest, Listener)
+{
+    auto [reserve, nbEntities] = GetParam();
+    if (reserve)
+        manager.reserve(nbEntities);
+    auto entitiesWithOne = std::vector<Entity>();
+    auto entitiesWithTwo = std::vector<Entity>();
+    auto entitiesWithThree = std::vector<Entity>();
+    // Add listeners
+    manager.getEntitySet<Position>().addEntityAddedListener([&entitiesWithOne](auto entity)
+    {
+        entitiesWithOne.push_back(entity);
+    });
+    manager.getEntitySet<Position, Velocity>().addEntityAddedListener([&entitiesWithTwo](auto entity)
+    {
+        entitiesWithTwo.push_back(entity);
+    });
+    manager.getEntitySet<Position, Velocity, Mass>().addEntityAddedListener([&entitiesWithThree](auto entity)
+    {
+        entitiesWithThree.push_back(entity);
+    });
+    for (auto i = std::size_t(0); i < nbEntities; ++i)
+    {
+        auto entity = manager.createEntity();
+        if (i % 4 >= 1)
+            manager.addComponent<Position>(entity, getX(i), getY(i));
+        if (i % 4 >= 2)
+            manager.addComponent<Velocity>(entity, getVx(i), getVy(i));
+        if (i % 4 >= 3)
+            manager.addComponent<Mass>(entity, getMass(i));
+    }
+    auto entitiesInEntitySet = std::vector<Entity>();
+    // One
+    entitiesInEntitySet = getEntitiesInEntitySet(manager.getEntitySet<Position>());
+    ASSERT_EQ(entitiesWithOne.size(), entitiesInEntitySet.size());
+    std::sort(std::begin(entitiesWithOne), std::end(entitiesWithOne));
+    std::sort(std::begin(entitiesInEntitySet), std::end(entitiesInEntitySet));
+    ASSERT_EQ(entitiesWithOne, entitiesInEntitySet);
+    // Two
+    entitiesInEntitySet = getEntitiesInEntitySet(manager.getEntitySet<Position, Velocity>());
+    ASSERT_EQ(entitiesWithTwo.size(), entitiesInEntitySet.size());
+    std::sort(std::begin(entitiesWithTwo), std::end(entitiesWithTwo));
+    std::sort(std::begin(entitiesInEntitySet), std::end(entitiesInEntitySet));
+    ASSERT_EQ(entitiesWithTwo, entitiesInEntitySet);
+    // Three
+    entitiesInEntitySet = getEntitiesInEntitySet(manager.getEntitySet<Position, Velocity, Mass>());
+    ASSERT_EQ(entitiesWithThree.size(), entitiesInEntitySet.size());
+    std::sort(std::begin(entitiesWithThree), std::end(entitiesWithThree));
+    std::sort(std::begin(entitiesInEntitySet), std::end(entitiesInEntitySet));
+    ASSERT_EQ(entitiesWithThree, entitiesInEntitySet);
+}
+
 // Seems that I use an old version of googletest, should be replaced by INSTANTIATE_TEST_SUITE in latter version
 INSTANTIATE_TEST_CASE_P(ReserveAndNbEntities, EntityManagerTest, ::testing::Combine(::testing::Values(false, true), ::testing::Values(1, 100, 10000)));
 
