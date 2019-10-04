@@ -597,6 +597,7 @@ TEST_P(EntityManagerTest, EntitySet)
             entitiesWithThree.push_back(entity);
         }
     }
+    // Tests
     auto entitiesInEntitySet = std::vector<Entity>();
     // One
     entitiesInEntitySet = getEntitiesInEntitySet(manager.getEntitySet<Position>());
@@ -649,6 +650,7 @@ TEST_P(EntityManagerTest, Listener)
         if (i % 4 >= 3)
             manager.addComponent<Mass>(entity, getMass(i));
     }
+    // Tests
     auto entitiesInEntitySet = std::vector<Entity>();
     // One
     entitiesInEntitySet = getEntitiesInEntitySet(manager.getEntitySet<Position>());
@@ -668,6 +670,47 @@ TEST_P(EntityManagerTest, Listener)
     std::sort(std::begin(entitiesWithThree), std::end(entitiesWithThree));
     std::sort(std::begin(entitiesInEntitySet), std::end(entitiesInEntitySet));
     ASSERT_EQ(entitiesWithThree, entitiesInEntitySet);
+}
+
+TEST_P(EntityManagerTest, Visitor)
+{
+    auto [reserve, nbEntities] = GetParam();
+    if (reserve)
+        manager.reserve(nbEntities);
+    auto entities = std::vector<Entity>();
+    for (auto i = std::size_t(0); i < nbEntities; ++i)
+    {
+        auto entity = entities.emplace_back(manager.createEntity());
+        if (i % 4 >= 1)
+            manager.addComponent<Position>(entity, getX(i), getY(i));
+        if (i % 4 >= 2)
+            manager.addComponent<Velocity>(entity, getVx(i), getVy(i));
+        if (i % 4 >= 3)
+            manager.addComponent<Mass>(entity, getMass(i));
+    }
+    // Visit
+    auto counterPosition = std::size_t(0);
+    auto counterVelocity = std::size_t(0);
+    auto counterMass = std::size_t(0);
+    auto visitor = Visitor();
+    visitor.setHandler<Position>([&counterPosition]([[maybe_unused]] const auto& position)
+    {
+        ++counterPosition;
+    });
+    visitor.setHandler<Velocity>([&counterVelocity]([[maybe_unused]] const auto& velocity)
+    {
+        ++counterVelocity;
+    });
+    visitor.setHandler<Mass>([&counterMass]([[maybe_unused]] const auto& mass)
+    {
+        ++counterMass;
+    });
+    for (auto entity : entities)
+        manager.visitEntity(entity, visitor);
+    // Tests
+    ASSERT_EQ(manager.getEntitySet<Position>().getSize(), counterPosition);
+    ASSERT_EQ(manager.getEntitySet<Velocity>().getSize(), counterVelocity);
+    ASSERT_EQ(manager.getEntitySet<Mass>().getSize(), counterMass);
 }
 
 // Seems that I use an old version of googletest, should be replaced by INSTANTIATE_TEST_SUITE in latter version
