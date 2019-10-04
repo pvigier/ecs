@@ -4,12 +4,11 @@
 #include <memory>
 #include "ComponentContainer.h"
 #include "EntitySetIterator.h"
+#include "EntitySetType.h"
 #include "EntityContainer.h"
 
 namespace ecs
 {
-
-using EntitySetType = std::size_t;
 
 template<typename ...Ts>
 class EntitySet;
