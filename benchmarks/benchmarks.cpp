@@ -74,8 +74,13 @@ void createEntities(benchmark::State& state)
             manager.reserve(static_cast<std::size_t>(state.range()));
         for (auto i = 0; i < state.range(); ++i)
         {
-            auto entity = manager.createEntity();
-            (manager.addComponent<Components>(entity), ...);
+            if constexpr (sizeof...(Components) == 0)
+                manager.createEntity();
+            else
+            {
+                auto entity = manager.createEntity();
+                (manager.addComponent<Components>(entity), ...);
+            }
         }
     }
     auto nbItems = static_cast<int>(state.iterations()) * state.range();
@@ -142,7 +147,6 @@ void createThenRemoveEntities(benchmark::State& state)
     for (auto _ : state)
     {
         auto manager = EntityManager();
-        auto system = DummySystem<Components...>(manager);
         if constexpr (Reserve)
             manager.reserve(static_cast<std::size_t>(state.range()));
         for (auto k = std::size_t(0); k < K; ++k)
