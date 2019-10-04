@@ -20,12 +20,12 @@ struct ComponentContainer : public BaseComponentContainer
 {
     ComponentSparseSet<T> components;
 
-    virtual BaseComponent& get(ComponentId componentId) override
+    BaseComponent& get(ComponentId componentId) override
     {
         return components.get(componentId);
     }
 
-    virtual void remove(ComponentId componentId)
+    void remove(ComponentId componentId) override
     {
         components.erase(componentId);
     }

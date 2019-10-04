@@ -40,12 +40,13 @@ public:
 
     void removeEntity(Entity entity)
     {
+        const auto& entityData = mEntities.get(entity);
         // Remove components
-        for (auto& [componentType, componentId] : mEntities.get(entity).getComponents())
+        for (auto& [componentType, componentId] : entityData.getComponents())
             mComponentContainers[componentType]->remove(componentId);
         // Send message to entity sets
-        for (auto& entitySet : mEntitySets)
-            entitySet->onEntityRemoved(entity);
+        for (auto entitySetType : entityData.getEntitySets())
+            mEntitySets[entitySetType]->onEntityRemoved(entity);
         // Remove entity
         mEntities.erase(entity);
     }

@@ -22,7 +22,7 @@ public:
     }
 
     static std::unique_ptr<BaseEntitySet> createEntitySet(std::size_t type,
-        const EntityContainer& entities,
+        EntityContainer& entities,
         const std::vector<std::unique_ptr<BaseComponentContainer>>& componentContainers,
         std::vector<std::vector<BaseEntitySet*>>& componentToEntitySets)
     {
@@ -43,26 +43,25 @@ public:
         if (satisfied && !managed)
             addEntity(entity);
         else if (!satisfied && managed)
-            removeEntity(entity);
+            removeEntity(entity, true);
     }
 
     void onEntityRemoved(Entity entity)
     {
-        if (hasEntity(entity))
-            removeEntity(entity);
+        removeEntity(entity, false);
     }
 
 protected:
     virtual bool satisfyRequirements(Entity entity) = 0;
     virtual void addEntity(Entity entity) = 0;
-    virtual void removeEntity(Entity entity) = 0;
+    virtual void removeEntity(Entity entity, bool updateEntity) = 0;
 
     std::unordered_map<Entity, std::size_t> mEntityToIndex;
 
     template<typename ...Ts>
     static EntitySetType generateEntitySetType()
     {
-        sFactories.push_back([](const EntityContainer& entities,
+        sFactories.push_back([](EntityContainer& entities,
             const std::vector<std::unique_ptr<BaseComponentContainer>>& componentContainers,
             std::vector<std::vector<BaseEntitySet*>>& componentToEntitySets)
             -> std::unique_ptr<BaseEntitySet>
@@ -77,7 +76,7 @@ protected:
 
 private:
     using EntitySetFactory = std::unique_ptr<BaseEntitySet>(*)(
-        const EntityContainer&,
+        EntityContainer&,
         const std::vector<std::unique_ptr<BaseComponentContainer>>&,
         std::vector<std::vector<BaseEntitySet*>>&);
 
@@ -108,7 +107,7 @@ public:
 
     static const EntitySetType Type;
 
-    EntitySet(const EntityContainer& entities, const ComponentContainers& componentContainers) :
+    EntitySet(EntityContainer& entities, const ComponentContainers& componentContainers) :
         mEntities(entities), mComponentContainers(componentContainers)
     {
 
@@ -162,22 +161,23 @@ public:
     }
 
 protected:
-    virtual bool satisfyRequirements(Entity entity) override
+    bool satisfyRequirements(Entity entity) override
     {
         return mEntities.get(entity).hasComponents<Ts...>();
     }
 
-    virtual void addEntity(Entity entity) override
+    void addEntity(Entity entity) override
     {
         mEntityToIndex[entity] = mManagedEntities.size();
-        const auto& entityData = mEntities.get(entity);
+        auto& entityData = mEntities.get(entity);
+        entityData.addEntitySet(Type);
         mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{entityData.getComponent<Ts>()...});
         // Call listeners
         for (const auto& listener : mEntityAddedListeners.getObjects())
             listener(entity);
     }
 
-    virtual void removeEntity(Entity entity) override
+    void removeEntity(Entity entity, bool updateEntity) override
     {
         // Call listeners
         for (const auto& listener : mEntityRemovedListeners.getObjects())
@@ -191,11 +191,13 @@ protected:
         mEntityToIndex.erase(it);
         mManagedEntities[index] = mManagedEntities.back();
         mManagedEntities.pop_back();
+        if (updateEntity)
+            mEntities.get(entity).removeEntitySet(Type);
     }
 
 private:
     std::vector<ValueType> mManagedEntities;
-    const EntityContainer& mEntities;
+    EntityContainer& mEntities;
     ComponentContainers mComponentContainers;
     SparseSet<ListenerId, EntityAddedListener> mEntityAddedListeners;
     SparseSet<ListenerId, EntityRemovedListener> mEntityRemovedListeners;
