@@ -41,7 +41,7 @@ public:
     void removeEntity(Entity entity)
     {
         // Remove components
-        for (auto& [componentType, componentId] : mEntities.get(entity))
+        for (auto& [componentType, componentId] : mEntities.get(entity).getComponents())
             mComponentContainers[componentType]->remove(componentId);
         // Send message to entity sets
         for (auto& entitySet : mEntitySets)
@@ -52,8 +52,7 @@ public:
 
     void visitEntity(Entity entity, const Visitor& visitor)
     {
-        auto& componentIds = mEntities.get(entity);
-        for (const auto& [componentType, componentId] : componentIds)
+        for (const auto& [componentType, componentId] : mEntities.get(entity).getComponents())
             visitor.handle(componentType, mComponentContainers[componentType]->get(componentId));
     }
 
@@ -63,48 +62,44 @@ public:
     bool hasComponent(Entity entity) const
     {
         checkComponentType<T>();
-        auto& componentIds = mEntities.get(entity);
-        return componentIds.find(T::Type) != std::end(componentIds);
+        return mEntities.get(entity).hasComponent<T>();
     }
 
     template<typename ...Ts>
     bool hasComponents(Entity entity) const
     {
         checkComponentTypes<Ts...>();
-        auto& componentIds = mEntities.get(entity);
-        return ((componentIds.find(Ts::Type) != std::end(componentIds)) && ...);
+        return mEntities.get(entity).hasComponents<Ts...>();
     }
 
     template<typename T>
     T& getComponent(Entity entity)
     {
         checkComponentType<T>();
-        auto componentId = mEntities.get(entity)[T::Type];
-        return getComponentSparseSet<T>().get(componentId);
+        return getComponentSparseSet<T>().get(mEntities.get(entity).getComponent<T>());
     }
 
     template<typename T>
     const T& getComponent(Entity entity) const
     {
         checkComponentType<T>();
-        auto componentId = mEntities.get(entity).find(T::Type)->second;
-        return getComponentSparseSet<T>().get(componentId);
+        return getComponentSparseSet<T>().get(mEntities.get(entity).getComponent<T>());
     }
 
     template<typename ...Ts>
     std::tuple<Ts&...> getComponents(Entity entity)
     {
         checkComponentTypes<Ts...>();
-        auto& componentIds = mEntities.get(entity);
-        return std::tie(getComponentSparseSet<Ts>().get(componentIds[Ts::Type])...);
+        auto& entityData = mEntities.get(entity);
+        return std::tie(getComponentSparseSet<Ts>().get(entityData.getComponent<Ts>())...);
     }
 
     template<typename ...Ts>
     std::tuple<const Ts&...> getComponents(Entity entity) const
     {
         checkComponentTypes<Ts...>();
-        auto& componentIds = mEntities.get(entity);
-        return std::tie(std::as_const(getComponentSparseSet<Ts>().get(componentIds.find(Ts::Type)->second))...);
+        auto& entityData = mEntities.get(entity);
+        return std::tie(std::as_const(getComponentSparseSet<Ts>().get(entityData.getComponent<Ts>()))...);
     }
 
     template<typename T, typename ...Args>
@@ -112,7 +107,7 @@ public:
     {
         checkComponentType<T>();
         auto [componentId, component] = getComponentSparseSet<T>().emplace(std::forward<Args>(args)...);
-        mEntities.get(entity)[T::Type] = componentId;
+        mEntities.get(entity).addComponent<T>(componentId);
         // Send message to entity sets
         for (auto entitySet : mComponentToEntitySets[T::Type])
             entitySet->onEntityUpdated(entity);
@@ -125,10 +120,7 @@ public:
     {
         checkComponentType<T>();
         // Remove component from entity and component container
-        auto& componentIds = mEntities.get(entity);
-        auto it = componentIds.find(T::Type);
-        getComponentSparseSet<T>().erase(it->second);
-        componentIds.erase(it);
+        getComponentSparseSet<T>().erase(mEntities.get(entity).removeComponent<T>());
         // Send message to entity sets
         for (auto entitySet : mComponentToEntitySets[T::Type])
             entitySet->onEntityUpdated(entity);

@@ -165,19 +165,14 @@ public:
 protected:
     virtual bool satisfyRequirements(Entity entity) override
     {
-        // TODO: to improve: this is a duplicate of EntityManager::hasComponents
-        auto& componentIds = mEntities.get(entity);
-        return ((componentIds.find(Ts::Type) != std::end(componentIds)) && ...);
+        return mEntities.get(entity).hasComponents<Ts...>();
     }
 
     virtual void addEntity(Entity entity) override
     {
         mEntityToIndex[entity] = mManagedEntities.size();
-        const auto& componentsIds = mEntities.get(entity);
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wnull-dereference"
-        mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{componentsIds.find(Ts::Type)->second...});
-        #pragma GCC diagnostic pop
+        const auto& entityData = mEntities.get(entity);
+        mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{entityData.getComponent<Ts>()...});
         // Call listeners
         for (const auto& listener : mEntityAddedListeners.getObjects())
             listener(entity);
