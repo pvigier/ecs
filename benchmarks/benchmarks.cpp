@@ -141,6 +141,34 @@ BENCHMARK_TEMPLATE(lookUpEntities, false, Position)->RangeMultiplier(10)->Range(
 BENCHMARK_TEMPLATE(lookUpEntities, false, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 BENCHMARK_TEMPLATE(lookUpEntities, false, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
 
+template<bool Reserve, typename ...Components>
+void visitEntities(benchmark::State& state)
+{
+    auto manager = EntityManager();
+    if constexpr (Reserve)
+        manager.reserve(static_cast<std::size_t>(state.range()));
+    auto entities = std::vector<Entity>();
+    for (auto i = 0; i < state.range(); ++i)
+    {
+        auto entity = manager.createEntity();
+        (manager.addComponent<Components>(entity), ...);
+        entities.push_back(entity);
+    }
+    auto visitor = Visitor();
+    ((visitor.setHandler<Components>([]([[maybe_unused]] const auto& component){})), ...);
+    for (auto _ : state)
+    {
+        for (const auto& entity : entities)
+            manager.visitEntity(entity, visitor);
+    }
+    auto nbItems = static_cast<int>(state.iterations()) * state.range();
+    state.SetItemsProcessed(static_cast<std::size_t>(nbItems));
+    state.SetComplexityN(state.range());
+}
+BENCHMARK_TEMPLATE(visitEntities, false, Position)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+BENCHMARK_TEMPLATE(visitEntities, false, Position, Velocity)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+BENCHMARK_TEMPLATE(visitEntities, false, Position, Velocity, Mass)->RangeMultiplier(10)->Range(MinNbEntities, MaxNbEntities);
+
 template<bool Reserve, std::size_t K, typename ...Components>
 void createThenRemoveEntities(benchmark::State& state)
 {
