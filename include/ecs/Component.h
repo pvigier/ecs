@@ -49,4 +49,16 @@ public:
 template<typename T>
 const ComponentType Component<T>::Type = BaseComponent::generateComponentType<T>();
 
+template<typename T>
+constexpr void checkComponentType()
+{
+    static_assert(std::is_base_of_v<Component<T>, T>, "A component of type T must inherit Component<T>");
+}
+
+template<typename ...Ts>
+constexpr void checkComponentTypes()
+{
+    (checkComponentType<Ts>(), ...);
+}
+
 }

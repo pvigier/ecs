@@ -148,17 +148,6 @@ private:
     std::vector<std::unique_ptr<BaseEntitySet>> mEntitySets;
     std::vector<std::vector<BaseEntitySet*>> mComponentToEntitySets;
 
-    template<typename T>
-    constexpr void checkComponentType() const
-    {
-        static_assert(std::is_base_of_v<Component<T>, T>, "A component of type T must inherit Component<T>");
-    }
-
-    template<typename ...Ts>
-    constexpr void checkComponentTypes() const
-    {
-        (checkComponentType<Ts>(), ...);
-    }
 
     template<typename T>
     ComponentSparseSet<T>& getComponentSparseSet()

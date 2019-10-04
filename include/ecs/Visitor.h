@@ -17,7 +17,7 @@ public:
     template<typename T, typename Callable>
     void setHandler(Callable&& callable)
     {
-        // TODO: add static assertion to check that T is a component type
+        checkComponentType<T>();
         mHandlers[T::Type] = [callable = std::forward<Callable>(callable)](BaseComponent& component)
         {
             callable(static_cast<T&>(component));
