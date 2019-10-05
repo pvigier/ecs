@@ -619,7 +619,7 @@ TEST_P(EntityManagerTest, EntitySet)
     ASSERT_EQ(entitiesWithThree, entitiesInEntitySet);
 }
 
-TEST_P(EntityManagerTest, Listener)
+TEST_P(EntityManagerTest, EntityAddedListener)
 {
     auto [reserve, nbEntities] = GetParam();
     if (reserve)
@@ -670,6 +670,55 @@ TEST_P(EntityManagerTest, Listener)
     std::sort(std::begin(entitiesWithThree), std::end(entitiesWithThree));
     std::sort(std::begin(entitiesInEntitySet), std::end(entitiesInEntitySet));
     ASSERT_EQ(entitiesWithThree, entitiesInEntitySet);
+}
+
+TEST_P(EntityManagerTest, EntityRemovedListener)
+{
+    auto [reserve, nbEntities] = GetParam();
+    if (reserve)
+        manager.reserve(nbEntities);
+    auto counterPosition = std::size_t(0);
+    auto counterVelocity = std::size_t(0);
+    auto counterMass = std::size_t(0);
+    // Add listeners
+    manager.getEntitySet<Position>().addEntityAddedListener([&counterPosition]([[maybe_unused]] auto entity)
+    {
+        ++counterPosition;
+    });
+    manager.getEntitySet<Position, Velocity>().addEntityAddedListener([&counterVelocity]([[maybe_unused]] auto entity)
+    {
+        ++counterVelocity;
+    });
+    manager.getEntitySet<Position, Velocity, Mass>().addEntityAddedListener([&counterMass]([[maybe_unused]] auto entity)
+    {
+        ++counterMass;
+    });
+    manager.getEntitySet<Position>().addEntityRemovedListener([&counterPosition]([[maybe_unused]] auto entity)
+    {
+        --counterPosition;
+    });
+    manager.getEntitySet<Position, Velocity>().addEntityRemovedListener([&counterVelocity]([[maybe_unused]] auto entity)
+    {
+        --counterVelocity;
+    });
+    manager.getEntitySet<Position, Velocity, Mass>().addEntityRemovedListener([&counterMass]([[maybe_unused]] auto entity)
+    {
+        --counterMass;
+    });
+    for (auto i = std::size_t(0); i < nbEntities; ++i)
+    {
+        auto entity = manager.createEntity();
+        if (i % 4 >= 1)
+            manager.addComponent<Position>(entity, getX(i), getY(i));
+        if (i % 4 >= 2)
+            manager.addComponent<Velocity>(entity, getVx(i), getVy(i));
+        if (i % 4 >= 3)
+            manager.addComponent<Mass>(entity, getMass(i));
+    }
+    // Tests
+    ASSERT_EQ(manager.getEntitySet<Position>().getSize(), counterPosition);
+    ASSERT_EQ(manager.getEntitySet<Velocity>().getSize(), counterVelocity);
+    ASSERT_EQ(manager.getEntitySet<Mass>().getSize(), counterMass);
 }
 
 TEST_P(EntityManagerTest, Visitor)
