@@ -163,7 +163,7 @@ public:
 protected:
     bool satisfyRequirements(Entity entity) override
     {
-        return mEntities.get(entity).hasComponents<Ts...>();
+        return mEntities.get(entity).template hasComponents<Ts...>();
     }
 
     void addEntity(Entity entity) override
@@ -171,7 +171,7 @@ protected:
         mEntityToIndex[entity] = mManagedEntities.size();
         auto& entityData = mEntities.get(entity);
         entityData.addEntitySet(Type);
-        mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{entityData.getComponent<Ts>()...});
+        mManagedEntities.emplace_back(entity, std::array<ComponentId, sizeof...(Ts)>{entityData.template getComponent<Ts>()...});
         // Call listeners
         for (const auto& listener : mEntityAddedListeners.getObjects())
             listener(entity);

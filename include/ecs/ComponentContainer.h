@@ -5,7 +5,7 @@
 namespace ecs
 {
 
-struct BaseComponent;
+class BaseComponent;
 
 struct BaseComponentContainer
 {
