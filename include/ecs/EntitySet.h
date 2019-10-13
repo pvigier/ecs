@@ -36,6 +36,11 @@ public:
 
     virtual ~BaseEntitySet() = default;
 
+    bool hasEntity(Entity entity) const
+    {
+        return mEntityToIndex.find(entity) != std::end(mEntityToIndex);
+    }
+
     void onEntityUpdated(Entity entity)
     {
         auto satisfied = satisfyRequirements(entity);
@@ -81,11 +86,6 @@ private:
         std::vector<std::vector<BaseEntitySet*>>&);
 
     static std::vector<EntitySetFactory> sFactories;
-
-    bool hasEntity(Entity entity) const
-    {
-        return mEntityToIndex.find(entity) != std::end(mEntityToIndex);
-    }
 };
 
 inline std::vector<BaseEntitySet::EntitySetFactory> BaseEntitySet::sFactories;
