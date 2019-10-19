@@ -34,7 +34,7 @@ public:
         return std::pair<Id, T&>(id, object);
     }
 
-    bool has(Id id)
+    bool has(Id id) const
     {
         return id < mIdToIndex.size() && mIdToIndex[id] != Undefined;
     }

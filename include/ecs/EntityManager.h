@@ -33,6 +33,11 @@ public:
 
     // Entities
 
+    bool hasEntity(Entity entity) const
+    {
+        return mEntities.has(entity);
+    }
+
     Entity createEntity()
     {
         return mEntities.emplace().first;

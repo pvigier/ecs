@@ -94,6 +94,7 @@ TEST_P(EntityManagerTest, AddComponents)
     for (auto i = std::size_t(0); i < entities.size(); ++i)
     {
         auto entity = entities[i];
+        ASSERT_TRUE(manager.hasEntity(entity));
         ASSERT_TRUE(manager.hasComponent<Position>(entity));
         ASSERT_FALSE(manager.hasComponent<Velocity>(entity));
         ASSERT_FALSE(manager.hasComponent<Mass>(entity));
@@ -418,6 +419,7 @@ TEST_P(EntityManagerTest, AddAndRemoveEntities)
     {
         auto entity = entities[i];
         manager.removeEntity(entity);
+        ASSERT_FALSE(manager.hasEntity(entity));
     }
     auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().getSize();
     ASSERT_EQ(entitySetSize, 0);
@@ -450,6 +452,7 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
         auto entity = entities[i];
         if (i % 3 != 0)
         {
+            ASSERT_TRUE(manager.hasEntity(entity));
             if (i % 4 >= 1)
             {
                 ASSERT_TRUE(manager.hasComponent<Position>(entity));
@@ -471,6 +474,8 @@ TEST_P(EntityManagerTest, AddAndRemoveSomeEntities)
                 ASSERT_EQ(mass.value, getMass(i));
             }
         }
+        else
+            ASSERT_FALSE(manager.hasEntity(entity));
     }
     auto entitySetSize = manager.getEntitySet<Position, Velocity, Mass>().getSize();
     if (nbEntities > 3)
@@ -517,6 +522,7 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
         auto entity = entities[i];
         if (i % 3 != 0)
         {
+            ASSERT_TRUE(manager.hasEntity(entity));
             if (i % 4 >= 1)
             {
                 ASSERT_TRUE(manager.hasComponent<Position>(entity));
@@ -542,6 +548,7 @@ TEST_P(EntityManagerTest, AddRemoveAndAddEntities)
     for (auto i = std::size_t(0); i < otherEntities.size(); ++i)
     {
         auto entity = otherEntities[i];
+        ASSERT_TRUE(manager.hasEntity(entity));
         if (i % 4 < 1)
         {
             ASSERT_TRUE(manager.hasComponent<Position>(entity));
