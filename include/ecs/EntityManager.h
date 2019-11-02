@@ -12,7 +12,7 @@ class Component;
 class EntityManager
 {
 public:
-    static constexpr auto UndefinedEntity = std::numeric_limits<Entity>::max();
+    static constexpr auto UndefinedEntity = static_cast<Entity>(std::numeric_limits<std::underlying_type_t<Entity>>::max());
 
     EntityManager()
     {

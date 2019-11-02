@@ -28,7 +28,7 @@ public:
         {
             id = mFreeIds.back();
             mFreeIds.pop_back();
-            mIdToIndex[id] = i;
+            mIdToIndex[static_cast<std::size_t>(id)] = i;
         }
         mIndexToId.push_back(id);
         return std::pair<Id, T&>(id, object);
@@ -36,35 +36,36 @@ public:
 
     bool has(Id id) const
     {
-        return id < mIdToIndex.size() && mIdToIndex[id] != Undefined;
+        return static_cast<std::size_t>(id) < mIdToIndex.size() &&
+            mIdToIndex[static_cast<std::size_t>(id)] != Undefined;
     }
 
     T& get(Id id)
     {
-        return mObjects[mIdToIndex[id]];
+        return mObjects[mIdToIndex[static_cast<std::size_t>(id)]];
     }
 
     const T& get(Id id) const
     {
-        return mObjects[mIdToIndex[id]];
+        return mObjects[mIdToIndex[static_cast<std::size_t>(id)]];
     }
 
     void erase(Id id)
     {
         // Get the index of the object to destroy
-        std::size_t i = mIdToIndex[id];
+        std::size_t i = mIdToIndex[static_cast<std::size_t>(id)];
         // Swap with the last object and update its index
         // Moving std::unordered_map may causes a segfault
         std::swap(mObjects[i], mObjects.back());
         //mObjects[i] = std::move(mObjects.back());
         Id lastObjectId = mIndexToId.back();
-        mIdToIndex[lastObjectId] = i;
+        mIdToIndex[static_cast<std::size_t>(lastObjectId)] = i;
         mIndexToId[i] = lastObjectId;
         // Erase the last object and its index
         mObjects.pop_back();
         mIndexToId.pop_back();
         // Assign Undefined to the id
-        mIdToIndex[id] = Undefined;
+        mIdToIndex[static_cast<std::size_t>(id)] = Undefined;
         // Add the deleted Id to the free Ids
         mFreeIds.push_back(id);
     }
