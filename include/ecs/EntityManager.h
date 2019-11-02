@@ -12,6 +12,8 @@ class Component;
 class EntityManager
 {
 public:
+    static constexpr auto UndefinedEntity = std::numeric_limits<Entity>::max();
+
     EntityManager()
     {
         auto nbComponents = BaseComponent::getComponentCount();
